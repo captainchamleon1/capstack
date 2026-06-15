@@ -14,6 +14,7 @@
     "db:reset": "prisma migrate reset --force",
     "db:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-local-db.ps1",
     "db:postgres": "docker compose up postgres -d",
+    "publish:github": "powershell -ExecutionPolicy Bypass -File scripts/publish-github.ps1",
     "dev:demo": "npm run db:seed && npm run dev"
   },
   "prisma": {
