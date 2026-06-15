@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id                   String    @id @default(cuid())
+  name                 String
+  legalName            String?
+  incorporationDate    DateTime?
+  state                String?
+  ein                  String?
+  authorizedShares     Int       @default(10000000)
+  parValue             Float     @default(0.00001)
+  currentFmv409A       Float     @default(0.55)
+  fmv409AEffectiveDate DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  memberships      Membership[]
+  invites          CompanyInvite[]
+  shareClasses     ShareClass[]
+  stakeholders     Stakeholder[]
+  equityGrants     EquityGrant[]
+  safes            Safe[]
+  convertibleNotes ConvertibleNote[]
+  fundraiseRounds  FundraiseRound[]
+  boardResolutions BoardResolution[]
+  documents        Document[]
+  auditEvents      AuditEvent[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+  invitesSent CompanyInvite[]
+  auditEvents AuditEvent[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  role      String   @default("owner")
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+model CompanyInvite {
+  id          String    @id @default(cuid())
+  companyId   String
+  email       String
+  role        String    @default("viewer") // owner, admin, viewer
+  token       String    @unique
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invitedBy User    @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, email])
+}
+
+model ShareClass {
+  id              String   @id @default(cuid())
+  companyId       String
+  name            String
+  type            String   // common, preferred, series_a, series_b, etc.
+  votesPerShare   Float    @default(1)
+  liquidationPref Float    @default(1)
+  isParticipating Boolean  @default(false)
+  seniority       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  equityGrants    EquityGrant[]
+  safes           Safe[]
+}
+
+model Stakeholder {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String
+  email       String?
+  type        String   // founder, employee, investor, advisor, board
+  relationship String? // employee, contractor, etc.
+  department  String?
+  title       String?
+  startDate   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  equityGrants  EquityGrant[]
+  safes         Safe[]
+  convertibleNotes ConvertibleNote[]
+}
+
+model EquityGrant {
+  id              String   @id @default(cuid())
+  companyId       String
+  stakeholderId   String
+  shareClassId    String
+  type            String   // iso, nso, rsu, rsa, warrant, common_stock, preferred_stock
+  status          String   @default("active") // draft, active, exercised, cancelled, expired
+  sharesGranted   Int
+  sharesExercised Int      @default(0)
+  strikePrice     Float?
+  grantDate       DateTime
+  boardApprovalDate DateTime?
+  expirationDate  DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stakeholder     Stakeholder  @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+  shareClass      ShareClass   @relation(fields: [shareClassId], references: [id], onDelete: Cascade)
+  vestingSchedule VestingSchedule?
+  documents       Document[]
+}
+
+model VestingSchedule {
+  id              String   @id @default(cuid())
+  equityGrantId   String   @unique
+  type            String   @default("time_based") // time_based, milestone, hybrid
+  cliffMonths     Int      @default(12)
+  vestingMonths   Int      @default(48)
+  vestingFrequency String  @default("monthly") // monthly, quarterly, annual
+  startDate       DateTime
+  accelerationType String? // single_trigger, double_trigger
+  createdAt       DateTime @default(now())
+
+  equityGrant     EquityGrant @relation(fields: [equityGrantId], references: [id], onDelete: Cascade)
+}
+
+model Safe {
+  id                String   @id @default(cuid())
+  companyId         String
+  stakeholderId     String
+  shareClassId      String?
+  type              String   // valuation_cap, discount, mfn, cap_and_discount
+  status            String   @default("outstanding") // outstanding, converted, cancelled
+  investmentAmount  Float
+  valuationCap      Float?
+  discountRate      Float?
+  proRata           Boolean  @default(false)
+  issueDate         DateTime
+  conversionDate    DateTime?
+  convertedShares   Int?
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stakeholder       Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+  shareClass        ShareClass? @relation(fields: [shareClassId], references: [id])
+}
+
+model ConvertibleNote {
+  id                String   @id @default(cuid())
+  companyId         String
+  stakeholderId     String
+  status            String   @default("outstanding")
+  principalAmount   Float
+  interestRate      Float    @default(0)
+  valuationCap      Float?
+  discountRate      Float?
+  maturityDate      DateTime?
+  issueDate         DateTime
+  conversionDate    DateTime?
+  convertedShares   Int?
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stakeholder       Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+}
+
+model FundraiseRound {
+  id                String   @id @default(cuid())
+  companyId         String
+  name              String
+  type              String   // seed, series_a, series_b, bridge, etc.
+  status            String   @default("planned") // planned, active, closed
+  preMoneyValuation Float?
+  investmentAmount  Float?
+  pricePerShare     Float?
+  newShares         Int?
+  optionPoolIncrease Float?
+  closeDate         DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model BoardResolution {
+  id          String   @id @default(cuid())
+  companyId   String
+  title       String
+  type        String   // option_pool, grant_approval, fundraise, etc.
+  status      String   @default("draft") // draft, pending, approved, rejected
+  description String?
+  meetingDate DateTime?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id            String   @id @default(cuid())
+  companyId     String
+  equityGrantId String?
+  name          String
+  type          String   // safe, option_agreement, notice_of_grant, board_consent, certificate, stock_purchase
+  status        String   @default("draft") // draft, sent, signed
+  content       String?
+  signedAt      DateTime?
+  createdAt     DateTime @default(now())
+
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  equityGrant   EquityGrant? @relation(fields: [equityGrantId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  companyId  String
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  summary    String
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+}
