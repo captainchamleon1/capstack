@@ -27,19 +27,19 @@ const events = [
 
 export function AuditPreview() {
   return (
-    <div className="product-frame marketing-product-frame overflow-hidden rounded-2xl border border-[#2a3140] bg-[#06080d]">
-      <div className="border-b border-[#232b3a] bg-[#0c1018] px-4 py-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b94a8]">
+    <div className="product-frame marketing-product-frame w-full overflow-hidden rounded-2xl border border-[#2a3140] bg-[#06080d]">
+      <div className="border-b border-[#232b3a] bg-[#0c1018] px-5 py-4 md:px-6">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8b94a8] md:text-xs">
           Activity log
         </p>
-        <p className="mt-0.5 text-sm font-medium text-[#eceef3]">Audit trail · Acme Robotics</p>
+        <p className="mt-1 text-base font-medium text-[#eceef3] md:text-lg">Audit trail · Acme Robotics</p>
       </div>
       <div className="divide-y divide-[#1a2130]">
         {events.map((event) => (
-          <div key={event.summary} className="px-4 py-3.5">
-            <p className="text-sm font-medium leading-snug text-[#eceef3]">{event.summary}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[#5c6578]">
-              <span className="rounded border border-[#232b3a] bg-[#131926] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-[#8b94a8]">
+          <div key={event.summary} className="px-5 py-4 md:px-6 md:py-5">
+            <p className="text-sm font-medium leading-snug text-[#eceef3] md:text-base">{event.summary}</p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-[#5c6578] md:text-sm">
+              <span className="rounded border border-[#232b3a] bg-[#131926] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-[#8b94a8] md:text-[11px]">
                 {event.action}
               </span>
               <span>

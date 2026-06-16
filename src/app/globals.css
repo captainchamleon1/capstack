@@ -206,6 +206,28 @@ body {
     0 24px 64px -16px rgba(0, 0, 0, 0.55);
 }
 
+.marketing-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 1280px) {
+  .marketing-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .marketing-container {
+    max-width: 84rem;
+  }
+}
+
 
 /* DOCX preview */
 .docx-preview-content .docx-wrapper {

@@ -34,23 +34,34 @@ const rows = [
 export function ComparisonTable() {
   return (
     <div className="overflow-hidden rounded-xl border border-border-default bg-surface-elevated">
-      <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-border-default bg-surface-overlay/50 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        <div className="px-4 py-3 sm:px-6">Topic</div>
-        <div className="border-l border-border-default px-4 py-3 sm:px-6">Typical legacy platform</div>
-        <div className="border-l border-border-default px-4 py-3 text-foreground sm:px-6">Equitr</div>
+      <div className="hidden border-b border-border-default bg-surface-overlay/50 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground md:grid md:grid-cols-[1fr_1fr_1fr] lg:text-sm">
+        <div className="px-6 py-4 lg:px-8">Topic</div>
+        <div className="border-l border-border-default px-6 py-4 lg:px-8">Typical legacy platform</div>
+        <div className="border-l border-border-default px-6 py-4 text-foreground lg:px-8">Equitr</div>
       </div>
       {rows.map((row, i) => (
         <div
           key={row.topic}
-          className={`grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] ${
+          className={`grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr] ${
             i < rows.length - 1 ? "border-b border-border-subtle" : ""
           }`}
         >
-          <div className="px-4 py-4 font-medium text-foreground sm:px-6">{row.topic}</div>
-          <div className="border-t border-border-subtle px-4 py-4 text-sm leading-relaxed text-muted-foreground sm:border-l sm:border-t-0 sm:px-6">
+          <div className="px-5 py-4 font-medium text-foreground md:px-6 md:py-5 md:text-base lg:px-8">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground md:hidden">
+              Topic
+            </span>
+            {row.topic}
+          </div>
+          <div className="border-t border-border-subtle px-5 py-4 text-sm leading-relaxed text-muted-foreground md:border-l md:border-t-0 md:px-6 md:py-5 md:text-base lg:px-8">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground md:hidden">
+              Legacy
+            </span>
             {row.legacy}
           </div>
-          <div className="border-t border-border-subtle px-4 py-4 text-sm leading-relaxed text-foreground sm:border-l sm:border-t-0 sm:px-6">
+          <div className="border-t border-border-subtle px-5 py-4 text-sm leading-relaxed text-foreground md:border-l md:border-t-0 md:px-6 md:py-5 md:text-base lg:px-8">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-brand md:hidden">
+              Equitr
+            </span>
             {row.equitr}
           </div>
         </div>

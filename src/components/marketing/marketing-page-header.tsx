@@ -19,14 +19,14 @@ export function MarketingPageHeader({
 }: MarketingPageHeaderProps) {
   return (
     <div className={cn("border-b border-border-default", className)}>
-      <div className="mx-auto max-w-6xl px-6 py-16 md:py-20">
+      <div className="marketing-container py-16 md:py-20 lg:py-24">
         {eyebrow && (
-          <p className="text-sm font-medium text-brand">{eyebrow}</p>
+          <p className="text-sm font-medium text-brand md:text-base">{eyebrow}</p>
         )}
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
+        <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl">
           {title}
         </h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-xl">
           {description}
         </p>
         {children}
@@ -54,10 +54,10 @@ export function MarketingCtaBand({
 }: MarketingCtaBandProps) {
   return (
     <section className="border-t border-border-default bg-surface/40">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-6 py-14 md:flex-row md:items-center">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
-          <p className="mt-2 max-w-xl text-muted-foreground">{description}</p>
+      <div className="marketing-container flex flex-col items-start justify-between gap-6 py-14 md:flex-row md:items-center lg:py-16">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">{title}</h2>
+          <p className="mt-2 text-base text-muted-foreground lg:text-lg">{description}</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link

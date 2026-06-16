@@ -13,11 +13,11 @@ const links = [
 export function MarketingNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-border-default/80 bg-ink/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-6">
+      <div className="marketing-container flex h-16 items-center justify-between gap-6 lg:h-[4.25rem]">
         <Link href="/" className="shrink-0">
           <Logo size="sm" />
         </Link>
-        <nav className="hidden items-center gap-7 text-sm text-muted-foreground lg:flex">
+        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex lg:gap-9 lg:text-[0.9375rem]">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="transition-colors hover:text-foreground">
               {link.label}

@@ -19,7 +19,7 @@ const columns = {
 export function MarketingFooter() {
   return (
     <footer className="border-t border-border-default bg-surface-elevated">
-      <div className="mx-auto max-w-6xl px-6 py-14">
+      <div className="marketing-container py-14 lg:py-16">
         <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Logo size="sm" />
