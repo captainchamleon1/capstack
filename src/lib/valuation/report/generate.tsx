@@ -11,6 +11,7 @@ import {
 } from "./enrich-report";
 import type { ValuationResult } from "../types";
 import type { Valuation, Company } from "@/generated/prisma/client";
+import { parseClientSubmission } from "../client-submission";
 
 export function buildReportData(valuation: Valuation, company: Company): ValuationReportData | null {
   if (!valuation.result) return null;
@@ -71,6 +72,8 @@ export async function buildReportDataEnriched(
     }),
   ]);
 
+  const submission = parseClientSubmission(valuation.clientSubmission);
+
   return finalizeReportData(
     {
       company: base.company,
@@ -91,6 +94,7 @@ export async function buildReportDataEnriched(
       fundraiseRounds: mapFundraiseRounds(rounds),
       shareClassTerms: mapShareClassTerms(classes),
       sensitivityMatrix: base.sensitivityMatrix,
+      businessDescription: submission?.businessDescription ?? null,
     }
   );
 }

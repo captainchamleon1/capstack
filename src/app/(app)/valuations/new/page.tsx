@@ -19,11 +19,19 @@ export default async function NewValuationPage() {
     <div>
       <Header
         title="Submit 409A Valuation"
-        description="Send your cap table and company data to Equitr for independent appraisal"
+        description="Provide company and financial information for your independent appraisal"
       />
       <PageBody>
         <ValuationSubmissionForm
           companyName={company.name}
+          companyProfile={{
+            legalName: company.legalName || company.name,
+            state: company.state,
+            incorporationDate: company.incorporationDate?.toISOString() ?? null,
+            ein: company.ein,
+          }}
+          priorFmv={company.currentFmv409A}
+          priorFmvDate={company.fmv409AEffectiveDate?.toISOString() ?? null}
           warnings={derived.warnings}
           capStructure={{
             commonShares: derived.cap.commonShares,

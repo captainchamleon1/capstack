@@ -4,15 +4,44 @@ import { revalidatePath } from "next/cache";
 import { requireApiWriteAccess } from "@/lib/api-auth";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
+import type { ClientValuationSubmission, CompanyStage } from "@/lib/valuation/client-submission";
 import { defaultSubmissionParams, runValuationForCompany } from "@/lib/valuation/run-for-company";
+
+const optionalNumber = z.union([z.coerce.number(), z.literal(""), z.null()]).optional();
 
 const schema = z.object({
   title: z.string().min(1).max(200),
   valuationDate: z.string().min(1),
-  clientNotes: z.string().max(4000).optional(),
   capTableConfirmed: z.boolean().refine((v) => v === true, { message: "Confirm your cap table is current" }),
-  companyInfoConfirmed: z.boolean().refine((v) => v === true, { message: "Confirm company information is current" }),
+  financialsConfirmed: z.boolean().refine((v) => v === true, { message: "Confirm financial information is accurate" }),
+  submission: z.object({
+    businessDescription: z.string().min(20, "Provide a brief business description (at least 20 characters)"),
+    industry: z.string().min(2, "Industry is required"),
+    stage: z.enum(["pre_revenue", "early_revenue", "growth", "profitable"]),
+    revenueTtm: optionalNumber,
+    revenuePriorYear: optionalNumber,
+    cashBalance: optionalNumber,
+    monthlyBurn: optionalNumber,
+    headcount: optionalNumber,
+    priorFmv: optionalNumber,
+    priorFmvDate: z.string().optional(),
+    expectedLiquidityYears: optionalNumber,
+    materialEvents: z.string().max(4000).optional(),
+    outstandingSafesNotes: z.string().max(2000).optional(),
+    companyProfile: z.object({
+      legalName: z.string().min(1),
+      state: z.string().nullable(),
+      incorporationDate: z.string().nullable(),
+      ein: z.string().nullable(),
+    }),
+  }),
 });
+
+function toNum(v: unknown): number | null {
+  if (v === "" || v == null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
 
 export async function POST(request: NextRequest) {
   const auth = await requireApiWriteAccess();
@@ -27,6 +56,23 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  const submission: ClientValuationSubmission = {
+    businessDescription: body.submission.businessDescription.trim(),
+    industry: body.submission.industry.trim(),
+    stage: body.submission.stage as CompanyStage,
+    revenueTtm: toNum(body.submission.revenueTtm),
+    revenuePriorYear: toNum(body.submission.revenuePriorYear),
+    cashBalance: toNum(body.submission.cashBalance),
+    monthlyBurn: toNum(body.submission.monthlyBurn),
+    headcount: toNum(body.submission.headcount),
+    priorFmv: toNum(body.submission.priorFmv),
+    priorFmvDate: body.submission.priorFmvDate?.trim() || null,
+    expectedLiquidityYears: toNum(body.submission.expectedLiquidityYears),
+    materialEvents: body.submission.materialEvents?.trim() || null,
+    outstandingSafesNotes: body.submission.outstandingSafesNotes?.trim() || null,
+    companyProfile: body.submission.companyProfile,
+  };
 
   const defaults = await defaultSubmissionParams(auth.company.id);
   if (!defaults) return NextResponse.json({ error: "Company not found" }, { status: 404 });
@@ -56,7 +102,7 @@ export async function POST(request: NextRequest) {
       holdingPeriod: defaults.holdingPeriod,
       inputs: JSON.stringify(inputsSnapshot),
       result: JSON.stringify(result),
-      clientNotes: body.clientNotes ?? null,
+      clientSubmission: JSON.stringify(submission),
       submittedAt: now,
       submittedById: auth.session.userId,
       submittedByName: auth.session.name,
@@ -70,8 +116,8 @@ export async function POST(request: NextRequest) {
     action: "valuation.submitted",
     entityType: "valuation",
     entityId: valuation.id,
-    summary: `Submitted 409A valuation request "${body.title}" for analyst review`,
-    metadata: { valuationDate: body.valuationDate },
+    summary: `Submitted 409A intake "${body.title}" for analyst review`,
+    metadata: { valuationDate: body.valuationDate, stage: submission.stage },
   });
 
   revalidatePath("/valuations");

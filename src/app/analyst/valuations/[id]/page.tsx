@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { loadValuationContext } from "@/lib/valuation/load";
 import { AnalystValuationWorkspace } from "@/components/valuations/analyst-valuation-workspace";
+import { ClientSubmissionSummary } from "@/components/valuations/client-submission-summary";
 import { valuationStatusLabel } from "@/lib/analyst";
 import { Badge } from "@/components/ui/badge";
 
@@ -57,6 +58,11 @@ export default async function AnalystValuationDetailPage({ params }: { params: P
         <Badge>{valuationStatusLabel(valuation.status, valuation.adoptedAt)}</Badge>
       </div>
 
+      <ClientSubmissionSummary
+        clientSubmissionRaw={valuation.clientSubmission}
+        clientNotes={valuation.clientNotes}
+      />
+
       <AnalystValuationWorkspace
         id={valuation.id}
         companyName={valuation.company.name}
@@ -75,7 +81,6 @@ export default async function AnalystValuationDetailPage({ params }: { params: P
         series={series}
         backsolveSeriesId={backsolveSeriesId}
         manualEquityValue={manualEquityValue}
-        clientNotes={valuation.clientNotes}
       />
     </div>
   );

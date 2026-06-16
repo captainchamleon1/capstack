@@ -35,7 +35,6 @@ interface Props {
   series: SeriesOption[];
   backsolveSeriesId: string | null;
   manualEquityValue: number | null;
-  clientNotes: string | null;
 }
 
 export function AnalystValuationWorkspace(props: Props) {
@@ -100,14 +99,11 @@ export function AnalystValuationWorkspace(props: Props) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        {props.clientNotes && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Client notes</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">{props.clientNotes}</CardContent>
-          </Card>
-        )}
+        <Card className="border-border-default">
+          <CardContent className="p-4 text-sm text-muted-foreground">
+            Valuation modeling — adjust assumptions and recalculate. Client-provided company data is shown above.
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

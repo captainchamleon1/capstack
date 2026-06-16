@@ -291,6 +291,7 @@ model Valuation {
   adoptedAt                DateTime?
 
   clientNotes              String?
+  clientSubmission         String?
   submittedAt              DateTime?
   submittedById            String?
   submittedByName          String?

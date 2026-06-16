@@ -12,6 +12,7 @@ import { clientCanViewValuationResults, valuationStatusLabel } from "@/lib/analy
 import { formatCurrency, formatNumber, formatDate } from "@/lib/utils";
 import type { ValuationResult } from "@/lib/valuation/types";
 import { ValuationActions } from "@/components/valuations/valuation-actions";
+import { ClientSubmissionSummary } from "@/components/valuations/client-submission-summary";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "warning" | "info"> = {
   submitted: "info",
@@ -90,12 +91,14 @@ export default async function ValuationDetailPage({ params }: { params: Promise<
                 <Badge variant={STATUS_VARIANT[valuation.status] ?? "secondary"}>{statusText}</Badge>
               </div>
 
-              {valuation.clientNotes && (
-                <div className="mt-8 rounded-lg border border-border-default bg-surface/50 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your notes</p>
-                  <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{valuation.clientNotes}</p>
+              {valuation.clientSubmission || valuation.clientNotes ? (
+                <div className="mt-8">
+                  <ClientSubmissionSummary
+                    clientSubmissionRaw={valuation.clientSubmission}
+                    clientNotes={valuation.clientNotes}
+                  />
                 </div>
-              )}
+              ) : null}
 
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
                 <Step done label="Data submitted" />
