@@ -228,6 +228,170 @@ body {
   }
 }
 
+/* Asymmetrical margin accents — wide screens only */
+.marketing-ambient {
+  z-index: 0;
+}
+
+.marketing-ambient-left {
+  position: absolute;
+  left: clamp(1rem, 4vw, 4.5rem);
+  top: 9rem;
+  height: 42vh;
+  width: 1px;
+}
+
+.marketing-ambient-rail {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(201, 169, 98, 0.08) 12%,
+    rgba(201, 169, 98, 0.38) 48%,
+    rgba(201, 169, 98, 0.08) 88%,
+    transparent 100%
+  );
+}
+
+.marketing-ambient-tick {
+  position: absolute;
+  left: 0;
+  height: 1px;
+  width: 2.5rem;
+  background: linear-gradient(90deg, rgba(201, 169, 98, 0.45), transparent);
+}
+
+.marketing-ambient-tick-1 {
+  top: 18%;
+}
+
+.marketing-ambient-tick-2 {
+  top: 46%;
+  width: 4rem;
+}
+
+.marketing-ambient-tick-3 {
+  top: 74%;
+  width: 1.75rem;
+}
+
+.marketing-ambient-stack {
+  position: absolute;
+  left: clamp(1.25rem, 5vw, 5rem);
+  bottom: 18%;
+  display: flex;
+  width: min(12rem, 14vw);
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.marketing-ambient-stack span {
+  display: block;
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(201, 169, 98, 0.28), rgba(201, 169, 98, 0.04));
+}
+
+.marketing-ambient-right {
+  position: absolute;
+  right: clamp(0.5rem, 3vw, 3.5rem);
+  top: 7rem;
+  width: min(16rem, 18vw);
+  height: min(16rem, 22vh);
+  color: rgba(201, 169, 98, 0.14);
+}
+
+.marketing-ambient-arc {
+  position: absolute;
+  right: -2rem;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.marketing-ambient-diagonal {
+  position: absolute;
+  right: 0;
+  height: 1px;
+  transform-origin: right center;
+  background: linear-gradient(270deg, rgba(123, 163, 201, 0.22), transparent);
+}
+
+.marketing-ambient-diagonal-1 {
+  top: 58%;
+  width: 6rem;
+  transform: rotate(-24deg);
+}
+
+.marketing-ambient-diagonal-2 {
+  top: 68%;
+  width: 9rem;
+  transform: rotate(-12deg);
+  opacity: 0.7;
+}
+
+.marketing-ambient-diagonal-3 {
+  top: 78%;
+  width: 5rem;
+  transform: rotate(-32deg);
+  opacity: 0.45;
+}
+
+.marketing-ambient-watermark {
+  position: absolute;
+  right: clamp(2rem, 6vw, 6rem);
+  top: 42%;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: clamp(5rem, 11vw, 9rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: rgba(201, 169, 98, 0.04);
+  user-select: none;
+}
+
+.marketing-ambient-wash {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.marketing-ambient-wash-left {
+  left: -12rem;
+  top: 28%;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(201, 169, 98, 0.045);
+}
+
+.marketing-ambient-wash-right {
+  right: -10rem;
+  top: 62%;
+  width: 20rem;
+  height: 20rem;
+  background: rgba(123, 163, 201, 0.035);
+}
+
+@media (min-width: 1280px) {
+  .marketing-ambient-left {
+    left: max(1.5rem, calc(50% - 44rem));
+  }
+
+  .marketing-ambient-stack {
+    left: max(2rem, calc(50% - 43rem));
+  }
+
+  .marketing-ambient-right {
+    right: max(1rem, calc(50% - 44rem));
+  }
+
+  .marketing-ambient-watermark {
+    right: max(2.5rem, calc(50% - 40rem));
+  }
+}
+
 
 /* DOCX preview */
 .docx-preview-content .docx-wrapper {

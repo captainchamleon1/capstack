@@ -7,6 +7,7 @@ import { ProductPreview } from "./product-preview";
 import { AuditPreview } from "./audit-preview";
 import { ComparisonTable } from "./comparison-table";
 import { MarketingFaq } from "./marketing-faq";
+import { MarketingAmbient } from "./marketing-ambient";
 
 const workflow = [
   {
@@ -42,10 +43,11 @@ const capabilities = [
 
 export function MarketingHome() {
   return (
-    <div className="marketing-site min-h-screen">
+    <div className="marketing-site relative isolate min-h-screen overflow-x-hidden">
+      <MarketingAmbient />
       <MarketingNav />
 
-      <main>
+      <main className="relative z-10">
         {/* Hero */}
         <section className="border-b border-border-default">
           <div className="marketing-container grid gap-12 py-16 md:grid-cols-2 md:items-center md:gap-14 md:py-20 lg:gap-16 lg:py-24 xl:gap-20 xl:py-28">
