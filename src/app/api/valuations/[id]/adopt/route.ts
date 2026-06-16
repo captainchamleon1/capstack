@@ -21,6 +21,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const valuation = await prisma.valuation.findFirst({ where: { id, companyId: auth.company.id } });
   if (!valuation) return NextResponse.json({ error: "Valuation not found" }, { status: 404 });
+  if (valuation.status !== "final") {
+    return NextResponse.json(
+      { error: "The valuation report is available after your analyst finalizes the engagement." },
+      { status: 400 }
+    );
+  }
   if (valuation.concludedFmv <= 0) {
     return NextResponse.json({ error: "Cannot adopt a valuation with a non-positive FMV." }, { status: 400 });
   }

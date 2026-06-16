@@ -9,7 +9,7 @@
 
 export type DlomMethod = "finnerty" | "chaffee";
 export type ValuationMethod = "opm_backsolve" | "opm_manual";
-export type ValuationStatus = "draft" | "in_review" | "final";
+export type ValuationStatus = "submitted" | "draft" | "in_review" | "final";
 
 /** A class of preferred stock with its economic rights. */
 export interface PreferredSeriesInput {

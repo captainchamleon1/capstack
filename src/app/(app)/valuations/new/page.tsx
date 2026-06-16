@@ -4,7 +4,7 @@ import { PageBody } from "@/components/layout/page-body";
 import { requireSessionMembership } from "@/lib/db";
 import { canWriteCapTable } from "@/lib/permissions";
 import { loadValuationContext } from "@/lib/valuation/load";
-import { NewValuationForm } from "@/components/valuations/new-valuation-form";
+import { ValuationSubmissionForm } from "@/components/valuations/valuation-submission-form";
 
 export default async function NewValuationPage() {
   const { company, role } = await requireSessionMembership();
@@ -13,41 +13,23 @@ export default async function NewValuationPage() {
   const ctx = await loadValuationContext(company.id);
   if (!ctx) return null;
 
-  const { derived, defaults, capTable } = ctx;
-
-  const series = derived.series.map((s) => ({
-    id: s.id,
-    name: s.name,
-    originalIssuePrice: s.originalIssuePrice,
-    roundName: s.round?.name ?? null,
-    pricePerShare: s.round?.pricePerShare ?? null,
-  }));
+  const { derived } = ctx;
 
   return (
     <div>
       <Header
-        title="New 409A Valuation"
-        description="Configure assumptions and run the Option Pricing Method"
+        title="Submit 409A Valuation"
+        description="Send your cap table and company data to Equitr for independent appraisal"
       />
       <PageBody>
-        <NewValuationForm
+        <ValuationSubmissionForm
           companyName={company.name}
-          series={series}
-          backsolveTargetId={derived.backsolveTarget?.seriesId ?? null}
-          defaults={defaults}
           warnings={derived.warnings}
           capStructure={{
             commonShares: derived.cap.commonShares,
             fullyDilutedShares: derived.cap.fullyDilutedShares,
-            preferred: derived.cap.preferred.map((p) => ({
-              name: p.name,
-              shares: p.shares,
-              originalIssuePrice: p.originalIssuePrice,
-              liquidationMultiple: p.liquidationMultiple,
-              participating: p.participating,
-            })),
+            preferred: derived.cap.preferred.map((p) => ({ name: p.name, shares: p.shares })),
             options: derived.cap.options.map((o) => ({ strike: o.strike, shares: o.shares })),
-            optionPoolAvailable: capTable.optionPoolAvailable,
           }}
         />
       </PageBody>

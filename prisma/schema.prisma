@@ -40,6 +40,7 @@ model User {
   email        String   @unique
   passwordHash String
   name         String
+  isAnalyst    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -259,7 +260,7 @@ model Valuation {
   companyId                String
   title                    String
   valuationDate            DateTime
-  status                   String    @default("draft") // draft, in_review, final
+  status                   String    @default("submitted") // submitted, in_review, final (draft legacy)
   method                   String    // opm_backsolve, opm_manual
   dlomMethod               String    @default("finnerty") // finnerty, chaffee
 
@@ -288,6 +289,11 @@ model Valuation {
   reviewedAt               DateTime?
   reviewNotes              String?
   adoptedAt                DateTime?
+
+  clientNotes              String?
+  submittedAt              DateTime?
+  submittedById            String?
+  submittedByName          String?
 
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt

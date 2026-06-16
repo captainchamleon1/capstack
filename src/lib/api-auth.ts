@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession, type SessionPayload } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canWriteCapTable } from "@/lib/permissions";
+import { isAnalystUser } from "@/lib/analyst";
 import type { Company } from "@/generated/prisma/client";
 
 type AuthFail = { success: false; error: NextResponse };
@@ -58,6 +59,22 @@ export async function requireApiWriteAccess(companyId?: string): Promise<AuthFai
   }
 
   return auth;
+}
+
+type AnalystOk = AuthOk & { isAnalyst: true };
+
+export async function requireApiAnalyst(): Promise<AuthFail | AnalystOk> {
+  const auth = await requireApiAuth();
+  if (!auth.success) return auth;
+
+  if (!(await isAnalystUser(auth.session.userId))) {
+    return {
+      success: false,
+      error: NextResponse.json({ error: "Analyst access required" }, { status: 403 }),
+    };
+  }
+
+  return { success: true, session: auth.session, isAnalyst: true };
 }
 
 export async function verifyGrantAccess(grantId: string, userId: string) {

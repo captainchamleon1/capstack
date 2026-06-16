@@ -30,10 +30,12 @@ export async function POST(request: NextRequest) {
 
     const hasCompany =
       (await prisma.membership.count({ where: { userId: user.id } })) > 0;
+    const isAnalyst = user.isAnalyst;
 
     return NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name },
       hasCompany,
+      isAnalyst,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

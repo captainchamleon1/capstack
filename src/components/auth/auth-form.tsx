@@ -59,7 +59,11 @@ export function AuthForm({ mode, defaultEmail, inviteToken, redirectTo }: AuthFo
       } else if (redirectTo) {
         router.push(redirectTo);
       } else if (mode === "login") {
-        router.push(data.hasCompany ? "/dashboard" : "/onboarding");
+        if (data.isAnalyst && !data.hasCompany) {
+          router.push("/analyst/valuations");
+        } else {
+          router.push(data.hasCompany ? "/dashboard" : "/onboarding");
+        }
       } else {
         router.push("/onboarding");
       }

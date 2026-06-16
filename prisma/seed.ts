@@ -42,6 +42,16 @@ async function main() {
     },
   });
 
+  const analystUser = await prisma.user.create({
+    data: {
+      email: "analyst@equitr.com",
+      name: "Equitr Analyst",
+      passwordHash: await bcrypt.hash("analyst12345", 12),
+      isAnalyst: true,
+    },
+  });
+  void analystUser;
+
   await prisma.membership.create({
     data: { userId: demoUser.id, companyId: company.id, role: "owner" },
   });
@@ -346,6 +356,7 @@ async function main() {
 
   console.log("Seed complete:", company.name);
   console.log("Demo login: demo@acmerobotics.com / demo12345");
+  console.log("Analyst login: analyst@equitr.com / analyst12345");
 }
 
 main()

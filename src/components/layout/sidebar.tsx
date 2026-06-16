@@ -57,7 +57,7 @@ const navGroups = [
   },
 ];
 
-export function Sidebar({ user, role }: { user: SessionPayload; role: string }) {
+export function Sidebar({ user, role, isAnalyst }: { user: SessionPayload; role: string; isAnalyst?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -105,6 +105,25 @@ export function Sidebar({ user, role }: { user: SessionPayload; role: string }) 
             </div>
           </div>
         ))}
+        {isAnalyst && (
+          <div>
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
+              Equitr
+            </p>
+            <Link
+              href="/analyst/valuations"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all",
+                pathname.startsWith("/analyst")
+                  ? "bg-brand/10 text-brand border border-brand/20"
+                  : "text-muted-foreground hover:bg-surface-overlay hover:text-foreground border border-transparent"
+              )}
+            >
+              <Scale className="h-4 w-4 shrink-0" />
+              Analyst portal
+            </Link>
+          </div>
+        )}
       </nav>
 
       <div className="border-t border-border-default p-4 space-y-3">
