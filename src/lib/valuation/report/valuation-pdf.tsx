@@ -1,127 +1,87 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
+import {
+  BRAND,
+  EquitrMark,
+  H1,
+  ReportFooter,
+  ReportHeader,
+  reportStyles as s,
+} from "./brand";
+import {
+  ALLOCATION_METHODS,
+  ANALYST_REPRESENTATION,
+  APPRAISER_QUALIFICATIONS,
+  ASSUMPTIONS_EXTENDED,
+  BIBLIOGRAPHY,
+  BSM_APPENDIX,
+  DLOM_NARRATIVE,
+  DLOM_STUDIES,
+  GLOSSARY,
+  GPC_COMPANIES,
+  GPC_VOLATILITY_NARRATIVE,
+  RR59_60_FACTORS,
+  transmittalLetter,
+} from "./narrative";
+import {
+  ApproachRow,
+  Bullet,
+  CapRow,
+  ClassHeaderRow,
+  DistributionTable,
+  EquityClassRow,
+  KV,
+  Numbered,
+  SensTable,
+  SensitivityMatrixTable,
+} from "./report-components";
 import type { ValuationReportData } from "./report-data";
-import { fmtMoney, fmtShare, fmtShares, fmtPct, fmtDate } from "./report-data";
-import type { GroupAllocation } from "../types";
+import { fmtDate, fmtMoney, fmtPct, fmtShare, fmtShares } from "./report-data";
 
-const C = {
-  ink: "#0b0d12",
-  text: "#1f2430",
-  muted: "#5b6472",
-  faint: "#8a93a3",
-  line: "#d8dce4",
-  lineSoft: "#e8ebf0",
-  brand: "#9a7b33",
-  brandSoft: "#f3eddd",
-  headerBg: "#f5f6f8",
-  white: "#ffffff",
-};
+const TOC: { num: string; label: string; sub?: boolean }[] = [
+  { num: "", label: "Transmittal Letter" },
+  { num: "", label: "Executive Summary" },
+  { num: "1.", label: "Summary of Findings" },
+  { num: "2.", label: "Introduction" },
+  { num: "3.", label: "IRC Section 409A" },
+  { num: "4.", label: "Overview of Valuation" },
+  { num: "5.", label: "Corporate Profile" },
+  { num: "6.", label: "Valuation Methodology and Approach" },
+  { num: "", label: "Revenue Ruling 59-60 Factors", sub: true },
+  { num: "", label: "Valuation Approaches and Selection", sub: true },
+  { num: "7.", label: "Determination of Total Equity Value" },
+  { num: "8.", label: "Allocation of Equity Value" },
+  { num: "9.", label: "Conclusion of Value" },
+  { num: "10.", label: "Premiums and Discounts" },
+  { num: "11.", label: "Sensitivity Analysis" },
+  { num: "12.", label: "Assumptions and Limiting Conditions" },
+  { num: "13.", label: "Valuation Analyst's Representation" },
+  { num: "A.", label: "Appendix — Option Pricing Model" },
+  { num: "", label: "Capitalization · Breakpoints · Option Values · Distribution", sub: true },
+  { num: "B.", label: "Appendix — Guideline Public Company Volatility" },
+  { num: "C.", label: "Appendix — Marketability Discount Literature" },
+  { num: "D.", label: "Appendix — Securities Terms and Financing History" },
+  { num: "E.", label: "Appendix — Black-Scholes-Merton Model" },
+  { num: "", label: "Glossary of Terms" },
+  { num: "", label: "Bibliography and Appraiser Qualifications" },
+];
 
-const styles = StyleSheet.create({
-  page: { paddingTop: 56, paddingBottom: 60, paddingHorizontal: 50, fontSize: 9.5, fontFamily: "Helvetica", color: C.text, lineHeight: 1.5 },
-  runningHeader: { position: "absolute", top: 24, left: 50, right: 50, flexDirection: "row", justifyContent: "space-between", fontSize: 7.5, color: C.faint, borderBottomWidth: 0.5, borderBottomColor: C.lineSoft, paddingBottom: 4 },
-  footer: { position: "absolute", bottom: 26, left: 50, right: 50, flexDirection: "row", justifyContent: "space-between", fontSize: 7.5, color: C.faint, borderTopWidth: 0.5, borderTopColor: C.lineSoft, paddingTop: 6 },
-
-  cover: { flex: 1, justifyContent: "center", paddingHorizontal: 36 },
-  coverEyebrow: { fontSize: 8.5, letterSpacing: 2, color: C.brand, fontFamily: "Helvetica-Bold", marginBottom: 14 },
-  coverTitle: { fontSize: 13, color: C.muted, marginBottom: 4 },
-  coverCompany: { fontSize: 30, fontFamily: "Helvetica-Bold", color: C.ink, marginBottom: 18 },
-  coverRule: { borderBottomWidth: 2, borderBottomColor: C.brand, width: 64, marginBottom: 24 },
-  coverMetaRow: { flexDirection: "row", marginBottom: 5 },
-  coverMetaLabel: { width: 150, color: C.muted, fontSize: 10 },
-  coverMetaValue: { color: C.ink, fontSize: 10, fontFamily: "Helvetica-Bold" },
-  statusPill: { marginTop: 24, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 3, fontSize: 8, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
-  conclusionBox: { marginTop: 26, borderWidth: 1, borderColor: C.brand, backgroundColor: C.brandSoft, borderRadius: 4, padding: 18 },
-  conclusionLabel: { fontSize: 8.5, letterSpacing: 1.5, color: C.brand, fontFamily: "Helvetica-Bold" },
-  conclusionValue: { fontSize: 32, fontFamily: "Helvetica-Bold", color: C.ink, marginTop: 6 },
-  conclusionSub: { fontSize: 9, color: C.muted, marginTop: 4 },
-
-  h1: { fontSize: 14, fontFamily: "Helvetica-Bold", color: C.ink, marginTop: 6, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
-  h1Rule: { borderBottomWidth: 1.5, borderBottomColor: C.brand, width: 36, marginBottom: 10 },
-  h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: C.ink, marginTop: 14, marginBottom: 5 },
-  h3: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: C.brand, marginTop: 10, marginBottom: 3 },
-  p: { marginBottom: 7, textAlign: "justify" },
-  exhibitCap: { fontSize: 8, fontFamily: "Helvetica-Bold", color: C.muted, marginTop: 8, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.5 },
-  bullet: { flexDirection: "row", marginBottom: 3, paddingLeft: 2 },
-  bulletDot: { width: 12, color: C.brand },
-  bulletText: { flex: 1 },
-  numbered: { flexDirection: "row", marginBottom: 5 },
-  numberedIdx: { width: 18, color: C.muted },
-  numberedText: { flex: 1, textAlign: "justify" },
-
-  table: { borderWidth: 0.5, borderColor: C.line, marginTop: 4, marginBottom: 8 },
-  tr: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: C.lineSoft },
-  trHead: { flexDirection: "row", backgroundColor: C.headerBg, borderBottomWidth: 0.5, borderBottomColor: C.line },
-  trTotal: { flexDirection: "row", backgroundColor: C.headerBg, borderTopWidth: 0.5, borderTopColor: C.line },
-  th: { paddingVertical: 4, paddingHorizontal: 5, fontSize: 7.5, fontFamily: "Helvetica-Bold", color: C.muted },
-  td: { paddingVertical: 4, paddingHorizontal: 5, fontSize: 8, color: C.text },
-  tdBold: { paddingVertical: 4, paddingHorizontal: 5, fontSize: 8, fontFamily: "Helvetica-Bold", color: C.ink },
-
-  kvRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: C.lineSoft, paddingVertical: 3 },
-  kvLabel: { width: "58%", color: C.muted, fontSize: 9 },
-  kvValue: { width: "42%", color: C.ink, fontSize: 9, fontFamily: "Helvetica-Bold", textAlign: "right" },
-
-  note: { fontSize: 7.5, color: C.muted, fontStyle: "italic", marginTop: 3, marginBottom: 6 },
-  warn: { fontSize: 8.5, color: "#8a5a00", backgroundColor: "#fbf3e0", borderWidth: 0.5, borderColor: "#e8d39a", borderRadius: 3, padding: 6, marginBottom: 6 },
-
-  tocRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 2.5, borderBottomWidth: 0.5, borderBottomColor: C.lineSoft },
-  tocText: { fontSize: 9.5, color: C.text },
-  tocSub: { fontSize: 9, color: C.muted, paddingLeft: 14 },
-});
-
-const right = { textAlign: "right" as const };
-const center = { textAlign: "center" as const };
-
-function Running({ data }: { data: ValuationReportData }) {
+function BodyPage({
+  data,
+  section,
+  children,
+}: {
+  data: ValuationReportData;
+  section?: string;
+  children: React.ReactNode;
+}) {
+  const isDraft = data.meta.status !== "final";
   return (
-    <View style={styles.runningHeader} fixed>
-      <Text>Valuation of {data.company.legalName || data.company.name}</Text>
-      <Text>{fmtDate(data.meta.valuationDate)}</Text>
-    </View>
-  );
-}
-function Footer({ data }: { data: ValuationReportData }) {
-  const isFinal = data.meta.status === "final";
-  return (
-    <View style={styles.footer} fixed>
-      <Text>
-        Confidential · Prepared by {data.meta.preparedByName || "Equitr Valuations"}
-        {!isFinal ? " · DRAFT — subject to analyst review" : ""}
-      </Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} of ${totalPages}`} />
-    </View>
-  );
-}
-function H1({ children, id }: { children: React.ReactNode; id?: string }) {
-  return (
-    <View wrap={false}>
-      <Text style={styles.h1} id={id}>{children}</Text>
-      <View style={styles.h1Rule} />
-    </View>
-  );
-}
-function KV({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <View style={styles.kvRow}>
-      <Text style={styles.kvLabel}>{label}</Text>
-      <Text style={[styles.kvValue, highlight ? { color: C.brand, fontSize: 10.5 } : {}]}>{value}</Text>
-    </View>
-  );
-}
-function Bullet({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={styles.bullet}>
-      <Text style={styles.bulletDot}>•</Text>
-      <Text style={styles.bulletText}>{children}</Text>
-    </View>
-  );
-}
-function Numbered({ i, children }: { i: number; children: React.ReactNode }) {
-  return (
-    <View style={styles.numbered}>
-      <Text style={styles.numberedIdx}>{i}.</Text>
-      <Text style={styles.numberedText}>{children}</Text>
-    </View>
+    <Page size="LETTER" style={s.page}>
+      <ReportHeader company={data.company.legalName || data.company.name} section={section} />
+      {children}
+      <ReportFooter reportId={data.meta.reportId} isDraft={isDraft} />
+    </Page>
   );
 }
 
@@ -130,727 +90,1056 @@ export function ValuationPdfDocument({ data }: { data: ValuationReportData }) {
   const a = r.assumptions;
   const isFinal = data.meta.status === "final";
   const company = data.company.legalName || data.company.name;
-  const statusColor = isFinal ? { backgroundColor: "#1f7a4d", color: C.white } : { backgroundColor: "#8a5a00", color: C.white };
+  const reportId = data.meta.reportId;
+  const valueBasis =
+    r.method === "opm_backsolve"
+      ? "Market Approach — Recent Securities Transaction (Backsolve)"
+      : "Direct equity value input";
 
   const commonAlloc = r.opm.allocations.find((al) => al.kind === "common");
   const prefAlloc = r.opm.allocations.filter((al) => al.kind === "preferred");
   const optAlloc = r.opm.allocations.filter((al) => al.kind === "option");
-  const valueBasis = r.method === "opm_backsolve" ? "Market Approach — Recent Securities Transaction (Backsolve)" : "Direct equity value input";
+
+  const letter = transmittalLetter(company, fmtDate(data.meta.valuationDate), fmtDate(data.meta.reportDate));
+  const gpcMedian = GPC_COMPANIES.reduce((sum, g) => sum + g.vol, 0) / GPC_COMPANIES.length;
+  const assumptionsMid = Math.ceil(ASSUMPTIONS_EXTENDED.length / 2);
 
   return (
-    <Document title={`${data.company.name} — 409A Valuation`} author="Equitr Valuations">
-      {/* ===== COVER ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <View style={styles.cover}>
-          <Text style={styles.coverEyebrow}>INDEPENDENT APPRAISAL — IRC §409A</Text>
-          <Text style={styles.coverTitle}>Independent appraisal valuation of the common stock of</Text>
-          <Text style={styles.coverCompany}>{data.company.name}</Text>
-          <View style={styles.coverRule} />
-          <View style={styles.coverMetaRow}><Text style={styles.coverMetaLabel}>Valuation date</Text><Text style={styles.coverMetaValue}>{fmtDate(data.meta.valuationDate)}</Text></View>
-          <View style={styles.coverMetaRow}><Text style={styles.coverMetaLabel}>Expiration date</Text><Text style={styles.coverMetaValue}>{fmtDate(data.meta.expirationDate)}</Text></View>
-          <View style={styles.coverMetaRow}><Text style={styles.coverMetaLabel}>Report date</Text><Text style={styles.coverMetaValue}>{fmtDate(data.meta.reportDate)}</Text></View>
-          <View style={styles.coverMetaRow}><Text style={styles.coverMetaLabel}>Subject security</Text><Text style={styles.coverMetaValue}>Common Stock</Text></View>
-          <View style={styles.coverMetaRow}><Text style={styles.coverMetaLabel}>Prepared by</Text><Text style={styles.coverMetaValue}>{data.meta.preparedByName || "Equitr Valuations"}</Text></View>
-          <Text style={[styles.statusPill, statusColor]}>{isFinal ? "FINAL" : "DRAFT — PENDING ANALYST REVIEW"}</Text>
-          <View style={styles.conclusionBox}>
-            <Text style={styles.conclusionLabel}>CONCLUDED FAIR MARKET VALUE — COMMON STOCK</Text>
-            <Text style={styles.conclusionValue}>{fmtShare(r.concludedFmv)}</Text>
-            <Text style={styles.conclusionSub}>per share, on a non-marketable, non-controlling basis, as of {fmtDate(data.meta.valuationDate)}</Text>
+    <Document
+      title={`${data.company.name} — 409A Valuation Report`}
+      author="Equitr Valuations"
+      subject={`Report ${reportId}`}
+    >
+      {/* Cover */}
+      <Page size="LETTER" style={s.coverPage}>
+        <View style={s.coverInner}>
+          <View style={s.coverTop}>
+            <View style={s.coverMarkRow}>
+              <EquitrMark size={32} />
+              <View>
+                <Text style={s.coverMarkLabel}>EQUITR</Text>
+                <Text style={s.coverMarkSub}>VALUATIONS</Text>
+              </View>
+            </View>
+            <Text style={s.coverEyebrow}>INDEPENDENT APPRAISAL</Text>
+            <Text style={s.coverCompany}>{data.company.name}</Text>
+            <Text style={s.coverSubtitle}>
+              Appraisal of the Fair Market Value of Common Stock{"\n"}
+              for IRC Section 409A Purposes
+            </Text>
+            <View style={s.coverRule} />
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Report reference</Text>
+              <Text style={s.coverMetaValue}>{reportId}</Text>
+            </View>
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Valuation date</Text>
+              <Text style={s.coverMetaValue}>{fmtDate(data.meta.valuationDate)}</Text>
+            </View>
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Expiration date</Text>
+              <Text style={s.coverMetaValue}>{fmtDate(data.meta.expirationDate)}</Text>
+            </View>
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Report date</Text>
+              <Text style={s.coverMetaValue}>{fmtDate(data.meta.reportDate)}</Text>
+            </View>
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Subject security</Text>
+              <Text style={s.coverMetaValue}>Common Stock</Text>
+            </View>
+            <View style={s.coverMetaRow}>
+              <Text style={s.coverMetaLabel}>Standard of value</Text>
+              <Text style={s.coverMetaValue}>Fair Market Value (non-marketable, non-controlling)</Text>
+            </View>
+          </View>
+          <View style={s.coverConclusion}>
+            <Text style={s.coverConclusionLabel}>CONCLUDED FAIR MARKET VALUE</Text>
+            <Text style={s.coverConclusionValue}>{fmtShare(r.concludedFmv)}</Text>
+            <Text style={s.coverConclusionSub}>
+              per share of common stock · as of {fmtDate(data.meta.valuationDate)}
+            </Text>
           </View>
         </View>
-        <Footer data={data} />
+        {!isFinal ? (
+          <Text style={s.coverDraft}>
+            Preliminary report — subject to review and sign-off by a qualified valuation analyst
+          </Text>
+        ) : null}
       </Page>
 
-      {/* ===== TABLE OF CONTENTS ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
+      {/* Transmittal */}
+      <BodyPage data={data} section="Transmittal Letter">
+        <H1>Transmittal Letter</H1>
+        <Text style={s.letterDate}>{fmtDate(data.meta.reportDate)}</Text>
+        <View style={s.letterBlock}>
+          <Text style={s.p}>Board of Directors</Text>
+          <Text style={s.p}>{company}</Text>
+        </View>
+        {letter.map((para, i) => (
+          <Text key={i} style={i < 5 ? s.p : s.pTight}>
+            {para}
+          </Text>
+        ))}
+        <View style={s.sigLine}>
+          <Text style={{ fontSize: 10, fontFamily: "Times-Bold" }}>
+            {data.meta.preparedByName || "Equitr Valuations"}
+          </Text>
+          <Text style={{ fontSize: 8.5, color: BRAND.muted, marginTop: 2 }}>Valuation Analyst</Text>
+        </View>
+      </BodyPage>
+
+      {/* TOC 1 */}
+      <BodyPage data={data} section="Table of Contents">
         <H1>Table of Contents</H1>
-        {[
-          ["1.", "Summary of Findings"],
-          ["", "Purpose and Scope · Summary of Findings"],
-          ["2.", "Introduction"],
-          ["", "Standard of Value · Level of Value · Premise of Value · Source of Information"],
-          ["3.", "IRC Section §409A"],
-          ["4.", "Overview of Valuation"],
-          ["5.", "Corporate Profile"],
-          ["", "Company Overview · Capital Structure"],
-          ["6.", "Valuation Methodology and Approach"],
-          ["", "Methodology Overview · Valuation Approaches · Selection of Approach"],
-          ["7.", "Determination of Total Equity Value"],
-          ["8.", "Allocation of Equity Value"],
-          ["", "Allocation Methods · Option Pricing Method"],
-          ["9.", "Conclusion of Value"],
-          ["10.", "Premiums and Discounts"],
-          ["", "Discount for Lack of Marketability"],
-          ["11.", "Sensitivity Analysis"],
-          ["12.", "Assumptions and Limiting Conditions"],
-          ["13.", "Valuation Analyst's Representation"],
-          ["A.", "Appendix — Option Pricing Model"],
-          ["", "Capitalization · Breakpoint Analysis · Option Values · Distribution of Value · Valuation of Each Class"],
-        ].map(([num, label], i) => (
-          <View key={i} style={styles.tocRow}>
-            <Text style={num ? styles.tocText : styles.tocSub}>
-              {num ? `${num}  ${label}` : label}
-            </Text>
+        {TOC.slice(0, 14).map((row, i) => (
+          <View key={i} style={s.tocRow}>
+            {row.sub ? (
+              <Text style={s.tocSub}>{row.label}</Text>
+            ) : (
+              <>
+                <Text style={s.tocNum}>{row.num}</Text>
+                <Text style={s.tocLabel}>{row.label}</Text>
+              </>
+            )}
           </View>
         ))}
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== 1. SUMMARY OF FINDINGS ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="summary">1. Summary of Findings</H1>
-        <Text style={styles.h2}>Purpose and Scope</Text>
-        <Text style={styles.p}>
-          Equitr Valuations has performed a valuation engagement of a non-controlling, non-marketable common equity
-          interest in {company} (the &quot;Company&quot;), as of {fmtDate(data.meta.valuationDate)} (the &quot;Valuation
-          Date&quot;). This valuation was performed to estimate the fair market value (&quot;FMV&quot;) of the
-          Company&apos;s common stock for purposes of Internal Revenue Code (&quot;IRC&quot;) Section 409A and the pricing
-          of equity compensation. The resulting conclusion of value should not be used for any other purpose or by any
-          other party.
+      {/* TOC 2 */}
+      <BodyPage data={data} section="Table of Contents">
+        <H1>Table of Contents (continued)</H1>
+        {TOC.slice(14).map((row, i) => (
+          <View key={i} style={s.tocRow}>
+            {row.sub ? (
+              <Text style={s.tocSub}>{row.label}</Text>
+            ) : (
+              <>
+                <Text style={s.tocNum}>{row.num}</Text>
+                <Text style={s.tocLabel}>{row.label}</Text>
+              </>
+            )}
+          </View>
+        ))}
+      </BodyPage>
+
+      {/* Executive Summary */}
+      <BodyPage data={data} section="Executive Summary">
+        <H1>Executive Summary</H1>
+        <Text style={s.p}>
+          Equitr Valuations has estimated the fair market value of the common stock of {company} as of{" "}
+          {fmtDate(data.meta.valuationDate)} for purposes of IRC Section 409A and equity compensation grant pricing.
+          The engagement applied the Market Approach (backsolve to a recent arm&apos;s-length financing, where
+          applicable), allocated total equity value among outstanding security classes using the Option Pricing Method
+          ("OPM"), and applied a discount for lack of marketability ("DLOM") to the common stock.
         </Text>
-        <Text style={styles.p}>
-          This engagement was conducted consistent with the AICPA Accounting and Valuation Guide, &quot;Valuation of
-          Privately-Held-Company Equity Securities Issued as Compensation,&quot; and the Uniform Standards of Professional
-          Appraisal Practice. The estimate of value that results from a valuation engagement is expressed as a conclusion
-          of value.
-        </Text>
-        {!isFinal && (
-          <Text style={styles.warn}>
-            This report is a draft produced by Equitr&apos;s automated valuation engine and is subject to final review and
-            sign-off by a qualified valuation analyst. It should not be relied upon for grant pricing until finalized.
-          </Text>
-        )}
-        <Text style={styles.h2}>Summary of Findings</Text>
-        <Text style={styles.p}>
-          This conclusion is subject to the Statement of Assumptions and Limiting Conditions and to the Valuation
-          Analyst&apos;s Representation contained herein. We have no obligation to update this report or our conclusion of
-          value for information that comes to our attention after the date of this report.
-        </Text>
-        <View style={styles.table}>
+        <Text style={s.exhibit}>Summary Conclusion</Text>
+        <View style={s.table}>
           <KV label="Subject company" value={company} />
-          <KV label="Subject security" value="Common Stock (non-marketable, non-controlling)" />
           <KV label="Valuation date" value={fmtDate(data.meta.valuationDate)} />
-          <KV label="Concluded fair market value" value={`${fmtShare(r.concludedFmv)} per share`} highlight />
-        </View>
-        <Footer data={data} />
-      </Page>
-
-      {/* ===== 2. INTRODUCTION ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="intro">2. Introduction</H1>
-        <Text style={styles.h3}>Standard of Value — Revenue Ruling 59-60</Text>
-        <Text style={styles.p}>
-          We have valued the Company on a fair market value standard consistent with IRS Revenue Ruling 59-60. &quot;Fair
-          market value&quot; is the price at which property would change hands between a willing buyer and a willing seller,
-          neither being under any compulsion to buy or sell and both having reasonable knowledge of the relevant facts.
-        </Text>
-        <Text style={styles.h3}>Level of Value</Text>
-        <Text style={styles.p}>
-          Non-marketability: As the Company is privately held, the transfer of its shares is subject to constraints,
-          indicating a lack of marketability addressed in the &quot;Discount for Lack of Marketability&quot; section.
-          Non-control: the awards being granted are on a non-controlling basis. This valuation is therefore conducted on a
-          non-marketable and non-controlling basis.
-        </Text>
-        <Text style={styles.h3}>Premise of Value</Text>
-        <Text style={styles.p}>
-          A company may be valued either as a going concern or as if in liquidation. This report is based on the
-          going-concern premise of value.
-        </Text>
-        <Text style={styles.h3}>Source of Information</Text>
-        <Text style={styles.p}>The key information relied upon in this valuation includes:</Text>
-        <Bullet>The Company&apos;s capitalization table and share class terms as maintained in Equitr as of the Valuation Date.</Bullet>
-        <Bullet>The Company&apos;s financing history, including the terms and pricing of its most recent preferred financing.</Bullet>
-        <Bullet>The Company&apos;s certificate of incorporation and related governing documents.</Bullet>
-        <Bullet>Representations from the Company&apos;s management regarding expected time to a liquidity event.</Bullet>
-        <Bullet>Prevailing market data for risk-free rates and comparable-company equity volatility.</Bullet>
-        <Text style={styles.note}>
-          Information provided by the Company and management has been accepted without independent verification or audit.
-        </Text>
-
-        <H1 id="s409a">3. IRC Section §409A</H1>
-        <Text style={styles.p}>
-          Section 409A of the Internal Revenue Code governs nonqualified deferred compensation, including stock options.
-          For private companies whose stock is not readily tradable, the exercise price of options must be at or above the
-          fair market value of the underlying common stock on the grant date. The regulations provide presumptions of
-          reasonableness (&quot;safe harbors&quot;) for determining fair market value:
-        </Text>
-        <Text style={styles.h3}>i. Independent Appraisal</Text>
-        <Text style={styles.p}>
-          A valuation by a qualified independent appraiser using acceptable methods, as of a date no more than 12 months
-          before the transaction and with no intervening material change, is presumed reasonable. The burden then shifts to
-          the IRS to show the valuation was grossly unreasonable. This report is intended to support the independent
-          appraisal presumption.
-        </Text>
-        <Text style={styles.h3}>ii. Binding Formula Presumption</Text>
-        <Text style={styles.p}>
-          A value determined by the consistent application of a formula used for all transfers of the relevant class of
-          stock may be presumed reasonable.
-        </Text>
-        <Text style={styles.h3}>iii. Illiquid Start-Up Presumption</Text>
-        <Text style={styles.p}>
-          A reasonable, good-faith valuation of an illiquid start-up corporation (generally less than 10 years old, with no
-          anticipated liquidity event within 12 months) prepared by a person with significant relevant knowledge and
-          experience may be presumed reasonable.
-        </Text>
-        <Footer data={data} />
-      </Page>
-
-      {/* ===== 4. OVERVIEW OF VALUATION ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="overview">4. Overview of Valuation</H1>
-        <Text style={styles.p}>
-          We estimated the total equity value of the Company and allocated that value to its outstanding securities using
-          the Option Pricing Method, then applied a discount for lack of marketability to arrive at the fair market value
-          of the common stock.
-        </Text>
-
-        <Text style={styles.exhibitCap}>Exhibit 1 — Valuation Result Overview</Text>
-        <View style={styles.table}>
-          <KV label={`Indicated total equity value (${r.method === "opm_backsolve" ? "backsolve" : "input"})`} value={fmtMoney(r.equityValue)} />
-          <KV label="Allocated to common stock (marketable)" value={fmtMoney(commonAlloc?.value ?? 0)} />
+          <KV label="Report expiration" value={fmtDate(data.meta.expirationDate)} />
+          <KV label="Indicated total equity value" value={fmtMoney(r.equityValue)} />
           <KV label="Marketable common value per share" value={fmtShare(r.marketableCommonPerShare)} />
-          <KV label={`Less: discount for lack of marketability (${fmtPct(r.dlom.value)})`} value={`(${fmtShare(r.marketableCommonPerShare - r.concludedFmv)})`} />
+          <KV label={`DLOM (${r.dlom.method})`} value={fmtPct(r.dlom.value)} />
           <KV label="Concluded common FMV per share" value={fmtShare(r.concludedFmv)} highlight />
         </View>
+        <Text style={s.h2}>Key Assumptions</Text>
+        <View style={s.table}>
+          <KV label="Time to liquidity" value={`${a.timeToLiquidity.toFixed(2)} years`} />
+          <KV label="Equity volatility" value={fmtPct(a.volatility)} />
+          <KV label="Risk-free rate" value={fmtPct(a.riskFreeRate, 2)} />
+          <KV label="DLOM holding period" value={`${r.dlom.holdingPeriod.toFixed(2)} years`} />
+          <KV label="Allocation method" value="Option Pricing Method (OPM)" />
+          <KV label="Value basis" value={valueBasis} />
+        </View>
+        {!isFinal ? (
+          <Text style={s.warn}>
+            This preliminary report was generated by Equitr&apos;s valuation engine and requires review by a qualified
+            valuation analyst before adoption for grant pricing.
+          </Text>
+        ) : null}
+      </BodyPage>
 
-        <Text style={styles.exhibitCap}>Exhibit 2 — Value of Each Equity Class</Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "30%" }]}>Class</Text>
-            <Text style={[styles.th, { width: "18%" }, right]}>Total value</Text>
-            <Text style={[styles.th, { width: "16%" }, right]}>Shares</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>Price/sh</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>DLOM</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>FMV/sh</Text>
-          </View>
+      {/* 1. Summary of Findings */}
+      <BodyPage data={data} section="§1 Summary of Findings">
+        <H1>1. Summary of Findings</H1>
+        <Text style={s.h2}>Purpose and Scope</Text>
+        <Text style={s.p}>
+          This valuation engagement estimates the fair market value of a non-controlling, non-marketable common equity
+          interest in {company} (the &quot;Company&quot;) as of {fmtDate(data.meta.valuationDate)} (the &quot;Valuation
+          Date&quot;). The conclusion is intended solely for IRC Section 409A compliance and the pricing of stock options
+          and other equity awards. It should not be used for any other purpose or relied upon by any other party.
+        </Text>
+        <Text style={s.p}>
+          The engagement was conducted in accordance with the AICPA Accounting and Valuation Guide, &quot;Valuation of
+          Privately-Held-Company Equity Securities Issued as Compensation,&quot; and the Uniform Standards of Professional
+          Appraisal Practice. The estimate of value is expressed as a conclusion of value subject to the assumptions and
+          limiting conditions in Section 12.
+        </Text>
+        <Text style={s.h2}>Summary of Findings</Text>
+        <Text style={s.p}>
+          Based on the analyses described in this report, the fair market value of the Company&apos;s common stock is
+          estimated at {fmtShare(r.concludedFmv)} per share on a non-marketable, non-controlling basis as of the
+          Valuation Date. We have no obligation to update this conclusion for events occurring after the report date.
+        </Text>
+        <View style={s.table}>
+          <KV label="Subject security" value="Common Stock" />
+          <KV label="Level of value" value="Non-marketable, non-controlling" />
+          <KV label="Premise of value" value="Going concern" />
+          <KV label="Concluded FMV" value={`${fmtShare(r.concludedFmv)} per share`} highlight />
+        </View>
+      </BodyPage>
+
+      {/* 2. Introduction */}
+      <BodyPage data={data} section="§2 Introduction">
+        <H1>2. Introduction</H1>
+        <Text style={s.h3}>Standard of Value</Text>
+        <Text style={s.p}>
+          Fair market value is defined under IRS Revenue Ruling 59-60 as the price at which property would change hands
+          between a willing buyer and a willing seller, neither under compulsion and both having reasonable knowledge of
+          relevant facts. This standard governs IRC Section 409A exercise pricing for private company stock.
+        </Text>
+        <Text style={s.h3}>Level of Value</Text>
+        <Text style={s.p}>
+          The subject interest is a minority, non-controlling position in a privately held company. Shares are not traded
+          on a public exchange and cannot be readily converted to cash; accordingly, a discount for lack of marketability
+          is applied. Control premiums and synergistic value are not reflected in this conclusion.
+        </Text>
+        <Text style={s.h3}>Premise of Value</Text>
+        <Text style={s.p}>
+          The Company is valued as a going concern. A liquidation premise would not appropriately reflect the enterprise&apos;s
+          operating assets, intangible value, and expected future returns.
+        </Text>
+        <Text style={s.h3}>Scope of Analysis</Text>
+        <Text style={s.p}>Our procedures included, among others:</Text>
+        <Bullet>Review of the capitalization table, share class rights, and option/warrant overhang as of the Valuation Date.</Bullet>
+        <Bullet>Analysis of the Company&apos;s financing history and most recent arm&apos;s-length transaction pricing.</Bullet>
+        <Bullet>Estimation of total equity value and allocation among security classes via the OPM.</Bullet>
+        <Bullet>Estimation of equity volatility from guideline public companies in comparable industries.</Bullet>
+        <Bullet>Application of an option-based DLOM to the allocated common stock value.</Bullet>
+        <Bullet>Preparation of sensitivity analyses illustrating the impact of key assumptions.</Bullet>
+      </BodyPage>
+
+      {/* 2 cont — Sources */}
+      <BodyPage data={data} section="§2 Introduction">
+        <Text style={s.h2}>Source of Information</Text>
+        <Text style={s.p}>Information relied upon includes, without limitation:</Text>
+        <Bullet>Capitalization data and share class terms maintained in the Company&apos;s Equitr cap table.</Bullet>
+        <Bullet>Certificate of incorporation, investors&apos; rights agreement, and related governing documents (as represented).</Bullet>
+        <Bullet>Fundraising records, term sheets, and closing documentation for priced equity rounds.</Bullet>
+        <Bullet>Representations from management regarding business operations, competitive position, and expected time to liquidity.</Bullet>
+        <Bullet>Market data for U.S. Treasury yields and guideline public company equity returns.</Bullet>
+        <Text style={s.note}>
+          Unless otherwise noted, information provided by the Company has been accepted without independent audit or
+          verification.
+        </Text>
+        <Text style={s.h2}>Report Organization</Text>
+        <Text style={s.p}>
+          Sections 3 through 5 address regulatory context, a summary of the valuation result, and the Company&apos;s
+          corporate and capital profile. Sections 6 through 9 describe methodology, total equity value, allocation, and
+          the conclusion of value. Sections 10 and 11 address marketability and sensitivity. Sections 12 and 13 set forth
+          assumptions, limiting conditions, and the valuation analyst&apos;s representation. Technical exhibits are provided
+          in the appendices.
+        </Text>
+        {data.company.businessDescription ? (
+          <>
+            <Text style={s.h2}>Business Description</Text>
+            <Text style={s.p}>{data.company.businessDescription}</Text>
+          </>
+        ) : (
+          <>
+            <Text style={s.h2}>Business Description</Text>
+            <Text style={s.p}>
+              {data.company.name} is a privately held {data.company.state}-corporation engaged in the development and
+              commercialization of technology products and services in its target market. Management has represented that
+              the Company continues to invest in product development, customer acquisition, and scaling operations in
+              anticipation of a future liquidity event. No independent verification of operating results was performed.
+            </Text>
+          </>
+        )}
+      </BodyPage>
+
+      {/* 3. 409A */}
+      <BodyPage data={data} section="§3 IRC Section 409A">
+        <H1>3. IRC Section 409A</H1>
+        <Text style={s.p}>
+          Section 409A of the Internal Revenue Code regulates nonqualified deferred compensation, including stock options
+          granted by private companies. The exercise price of an option must be at least equal to the fair market value
+          of the underlying stock on the grant date. For stock that is not readily tradable, fair market value must be
+          determined using a reasonable valuation method.
+        </Text>
+        <Text style={s.h3}>Independent Appraisal Presumption</Text>
+        <Text style={s.p}>
+          A valuation performed by a qualified independent appraiser, using consistently applied methods, as of a date no
+          more than 12 months before the option grant and absent a material change, is presumed reasonable. The burden of
+          proof shifts to the IRS to demonstrate that the valuation is grossly unreasonable. This report is prepared to
+          support the independent appraisal safe harbor, subject to analyst review and finalization.
+        </Text>
+        <Text style={s.h3}>Binding Formula Presumption</Text>
+        <Text style={s.p}>
+          A value determined by the consistent application of a formula used for all transfers of the subject class of
+          stock may also be presumed reasonable. The Company has not adopted a binding formula for common stock transfers;
+          accordingly, this presumption is not relied upon.
+        </Text>
+        <Text style={s.h3}>Illiquid Start-Up Presumption</Text>
+        <Text style={s.p}>
+          An illiquid start-up corporation (generally less than 10 years old with no anticipated liquidity within 12
+          months) may rely on a reasonable good-faith valuation by a person with significant knowledge and experience.
+          While this presumption may be available, the independent appraisal approach provides a higher degree of
+          defensibility for companies with priced preferred financings and complex capital structures.
+        </Text>
+        <Text style={s.h3}>Validity Period</Text>
+        <Text style={s.p}>
+          Absent a material event, this valuation remains valid through {fmtDate(data.meta.expirationDate)} (12 months
+          from the Valuation Date). A new valuation should be obtained upon a qualified financing, significant change in
+          operations, or other event that may materially affect common stock value.
+        </Text>
+      </BodyPage>
+
+      {/* 4. Overview */}
+      <BodyPage data={data} section="§4 Overview">
+        <H1>4. Overview of Valuation</H1>
+        <Text style={s.p}>
+          Total equity value was estimated and allocated to the Company&apos;s outstanding securities. A marketability
+          discount was then applied to the common stock to arrive at the concluded fair market value per share.
+        </Text>
+        <Text style={s.exhibit}>Exhibit 4-1 — Valuation Bridge</Text>
+        <View style={s.table}>
+          <KV label={`Total equity value (${r.method === "opm_backsolve" ? "backsolve" : "input"})`} value={fmtMoney(r.equityValue)} />
+          <KV label="Allocated to common (marketable basis)" value={fmtMoney(commonAlloc?.value ?? 0)} />
+          <KV label="Marketable common per share" value={fmtShare(r.marketableCommonPerShare)} />
+          <KV label={`Less: DLOM (${fmtPct(r.dlom.value)})`} value={`(${fmtShare(r.marketableCommonPerShare - r.concludedFmv)})`} />
+          <KV label="Concluded common FMV per share" value={fmtShare(r.concludedFmv)} highlight />
+        </View>
+        <Text style={s.exhibit}>Exhibit 4-2 — Value by Equity Class</Text>
+        <View style={s.table}>
+          <ClassHeaderRow />
           <EquityClassRow al={commonAlloc} dlom={r.dlom.value} fmv={r.concludedFmv} />
-          {prefAlloc.map((al) => <EquityClassRow key={al.key} al={al} />)}
-          {optAlloc.map((al) => <EquityClassRow key={al.key} al={al} />)}
-          <View style={styles.trTotal}>
-            <Text style={[styles.tdBold, { width: "30%" }]}>Total</Text>
-            <Text style={[styles.tdBold, { width: "18%" }, right]}>{fmtMoney(r.equityValue)}</Text>
-            <Text style={[styles.tdBold, { width: "16%" }, right]}>{fmtShares(r.capStructure.fullyDilutedShares)}</Text>
-            <Text style={[styles.tdBold, { width: "36%" }, right]}></Text>
+          {prefAlloc.map((al) => (
+            <EquityClassRow key={al.key} al={al} />
+          ))}
+          {optAlloc.map((al) => (
+            <EquityClassRow key={al.key} al={al} />
+          ))}
+          <View style={s.trTotal}>
+            <Text style={[s.tdBold, { width: "30%" }]}>Total</Text>
+            <Text style={[s.tdBold, { width: "18%" }, { textAlign: "right" }]}>{fmtMoney(r.equityValue)}</Text>
+            <Text style={[s.tdBold, { width: "52%" }]}></Text>
           </View>
         </View>
-        <Text style={styles.note}>The discount for lack of marketability is applied to the common stock, the subject of this valuation.</Text>
-        <Footer data={data} />
-      </Page>
+        <Text style={s.note}>DLOM is applied to common stock only — the subject security of this engagement.</Text>
+      </BodyPage>
 
-      {/* ===== 5. CORPORATE PROFILE ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="profile">5. Corporate Profile</H1>
-        <Text style={styles.h2}>Company Overview</Text>
-        <View style={styles.table}>
+      {/* 5. Corporate Profile */}
+      <BodyPage data={data} section="§5 Corporate Profile">
+        <H1>5. Corporate Profile</H1>
+        <Text style={s.h2}>Company Overview</Text>
+        <View style={s.table}>
           <KV label="Legal name" value={company} />
-          <KV label="State of incorporation" value={data.company.state || "—"} />
+          <KV label="State of incorporation" value={data.company.state || "Delaware"} />
           <KV label="Date of incorporation" value={data.company.incorporationDate ? fmtDate(data.company.incorporationDate) : "—"} />
           <KV label="Authorized shares" value={fmtShares(data.company.authorizedShares)} />
-          <KV label="Fully diluted shares outstanding" value={fmtShares(r.capStructure.fullyDilutedShares)} />
+          <KV label="Fully diluted shares" value={fmtShares(r.capStructure.fullyDilutedShares)} />
         </View>
-
-        <Text style={styles.h2}>Capital Structure</Text>
-        <Text style={styles.p}>
-          The Company&apos;s equity on a fully diluted basis as of the Valuation Date is summarized below. The rights and
-          preferences of each class drive the allocation of equity value in the Option Pricing Method (see Appendix).
+        <Text style={s.h2}>Capital Structure</Text>
+        <Text style={s.p}>
+          The following table summarizes the Company&apos;s fully diluted capitalization as of the Valuation Date. Rights
+          and preferences of each class determine breakpoint levels in the OPM allocation (Appendix A).
         </Text>
-        <Text style={styles.exhibitCap}>Exhibit 3 — Capital Structure (Fully Diluted)</Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "54%" }]}>Class</Text>
-            <Text style={[styles.th, { width: "23%" }, right]}>Units</Text>
-            <Text style={[styles.th, { width: "23%" }, right]}>% Fully diluted</Text>
+        <Text style={s.exhibit}>Exhibit 5-1 — Fully Diluted Capitalization</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "54%" }]}>Class</Text>
+            <Text style={[s.th, { width: "23%" }, { textAlign: "right" }]}>Shares</Text>
+            <Text style={[s.th, { width: "23%" }, { textAlign: "right" }]}>% FD</Text>
           </View>
-          <CapRow label="Common stock &amp; equivalents" shares={r.capStructure.commonShares} fd={r.capStructure.fullyDilutedShares} />
+          <CapRow label="Common stock" shares={r.capStructure.commonShares} fd={r.capStructure.fullyDilutedShares} />
           {r.capStructure.preferred.map((p) => (
-            <CapRow key={p.id} label={`${p.name} (${p.liquidationMultiple}x ${p.participating ? "participating" : "non-participating"})`} shares={p.shares} fd={r.capStructure.fullyDilutedShares} />
+            <CapRow
+              key={p.id}
+              label={`${p.name} (${p.liquidationMultiple}x ${p.participating ? "part." : "non-part."})`}
+              shares={p.shares}
+              fd={r.capStructure.fullyDilutedShares}
+            />
           ))}
           {r.capStructure.options.map((o) => (
-            <CapRow key={o.strike} label={`Options / warrants @ ${fmtShare(o.strike)}`} shares={o.shares} fd={r.capStructure.fullyDilutedShares} />
+            <CapRow key={o.strike} label={`Options @ ${fmtShare(o.strike)}`} shares={o.shares} fd={r.capStructure.fullyDilutedShares} />
           ))}
-          <View style={styles.trTotal}>
-            <Text style={[styles.tdBold, { width: "54%" }]}>Total fully diluted</Text>
-            <Text style={[styles.tdBold, { width: "23%" }, right]}>{fmtShares(r.capStructure.fullyDilutedShares)}</Text>
-            <Text style={[styles.tdBold, { width: "23%" }, right]}>100.00%</Text>
+          <View style={s.trTotal}>
+            <Text style={[s.tdBold, { width: "54%" }]}>Total fully diluted</Text>
+            <Text style={[s.tdBold, { width: "23%" }, { textAlign: "right" }]}>{fmtShares(r.capStructure.fullyDilutedShares)}</Text>
+            <Text style={[s.tdBold, { width: "23%" }, { textAlign: "right" }]}>100.00%</Text>
           </View>
         </View>
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== 6. METHODOLOGY ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="method">6. Valuation Methodology and Approach</H1>
-        <Text style={styles.h2}>Methodology Overview</Text>
-        <Text style={styles.p}>
-          Consistent with Revenue Ruling 59-60, we considered the nature and history of the business; the economic and
-          industry outlook; the book value and financial condition of the Company; its earning and dividend-paying
-          capacity; the existence of goodwill or other intangible value; prior sales of stock and the size of the block to
-          be valued; and the market prices of comparable publicly traded companies.
+      {/* 5 cont — Financing */}
+      <BodyPage data={data} section="§5 Corporate Profile">
+        <Text style={s.h2}>Financing History</Text>
+        <Text style={s.p}>
+          The table below summarizes priced equity financings relevant to the valuation. The most recent arm&apos;s-length
+          transaction provides the primary market-based anchor when the backsolve method is employed.
         </Text>
-        <Text style={styles.h2}>Valuation Approaches</Text>
-        <Text style={styles.h3}>Market Approach</Text>
-        <Text style={styles.p}>
-          The Market Approach indicates value by reference to comparable transactions or companies. For venture-backed
-          companies, the most reliable indication of value is frequently the price negotiated in a recent arm&apos;s-length
-          financing; the OPM backsolve method derives total equity value from that transaction.
-        </Text>
-        <Text style={styles.h3}>Income Approach</Text>
-        <Text style={styles.p}>
-          The Income Approach (typically a discounted cash flow analysis) indicates value as the present value of expected
-          future economic benefits. It relies heavily on subjective long-range projections.
-        </Text>
-        <Text style={styles.h3}>Asset-Based Approach</Text>
-        <Text style={styles.p}>
-          The Asset-Based Approach indicates value by reference to the cost to reproduce or replace the Company&apos;s
-          assets, net of liabilities. It tends to understate the value of going-concern enterprises with significant
-          intangible or growth value.
-        </Text>
-
-        <Text style={styles.h2}>Selection of Valuation Approach</Text>
-        <Text style={styles.exhibitCap}>Exhibit 4 — Approach Selection</Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "30%" }]}>Approach</Text>
-            <Text style={[styles.th, { width: "22%" }]}>Decision</Text>
-            <Text style={[styles.th, { width: "48%" }]}>Rationale</Text>
+        <Text style={s.exhibit}>Exhibit 5-2 — Equity Financing Summary</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "22%" }]}>Round</Text>
+            <Text style={[s.th, { width: "14%" }]}>Status</Text>
+            <Text style={[s.th, { width: "16%" }, { textAlign: "right" }]}>Close</Text>
+            <Text style={[s.th, { width: "16%" }, { textAlign: "right" }]}>Pre-money</Text>
+            <Text style={[s.th, { width: "16%" }, { textAlign: "right" }]}>Investment</Text>
+            <Text style={[s.th, { width: "16%" }, { textAlign: "right" }]}>Price/sh</Text>
           </View>
-          {r.method === "opm_backsolve" ? (
-            <ApproachRow approach="Market Approach" decision="Adopted" rationale="Recent arm's-length financing provides an objective, market-based indication of equity value." />
-          ) : (
-            <ApproachRow approach="Market Approach" decision="Considered" rationale="Equity value supplied directly; allocation performed via the OPM." />
-          )}
-          <ApproachRow approach="Income Approach" decision="Rejected" rationale="Relies on subjective long-range projections not appropriate for an early-stage company." />
-          <ApproachRow approach="Asset-Based Approach" decision="Rejected" rationale="Fails to capture going-concern and intangible value." />
+          {(data.fundraiseRounds?.length ? data.fundraiseRounds : defaultFinancingRows(r)).map((row, i) => (
+            <View style={s.tr} key={i}>
+              <Text style={[s.td, { width: "22%" }]}>{row.name}</Text>
+              <Text style={[s.td, { width: "14%" }]}>{row.status}</Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>
+                {row.closeDate ? fmtDate(row.closeDate) : "—"}
+              </Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>
+                {row.preMoneyValuation != null ? fmtMoney(row.preMoneyValuation) : "—"}
+              </Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>
+                {row.investmentAmount != null ? fmtMoney(row.investmentAmount) : "—"}
+              </Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>
+                {row.pricePerShare != null ? fmtShare(row.pricePerShare) : "—"}
+              </Text>
+            </View>
+          ))}
         </View>
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== 7. EQUITY VALUE ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="equity">7. Determination of Total Equity Value</H1>
-        <Text style={styles.p}>Basis of value: {valueBasis}.</Text>
+      {/* 6. Methodology — intro */}
+      <BodyPage data={data} section="§6 Methodology">
+        <H1>6. Valuation Methodology and Approach</H1>
+        <Text style={s.h2}>Methodology Overview</Text>
+        <Text style={s.p}>
+          Consistent with Revenue Ruling 59-60, we considered the nature and history of the business; economic and
+          industry conditions; financial condition; earning and dividend capacity; intangible value; prior stock sales;
+          and prices of comparable publicly traded securities. The following subsections address the eight standard
+          factors in detail.
+        </Text>
+        <Text style={s.h2}>Valuation Approaches — Overview</Text>
+        <Text style={s.h3}>Market Approach</Text>
+        <Text style={s.p}>
+          The Market Approach derives value from comparable transactions or companies. For venture-backed enterprises, a
+          recent arm&apos;s-length preferred financing frequently provides the most objective indication of total equity
+          value; the OPM backsolve calibrates equity value to that transaction price.
+        </Text>
+        <Text style={s.h3}>Income Approach</Text>
+        <Text style={s.p}>
+          The Income Approach values the enterprise as the present value of projected future cash flows. It was not
+          selected because reliable long-range forecasts are not available and historical earnings are not indicative of
+          value for the Company at its current stage.
+        </Text>
+        <Text style={s.h3}>Asset-Based Approach</Text>
+        <Text style={s.p}>
+          The Asset-Based Approach values net tangible assets. It was not selected because it does not capture going-concern
+          value, growth optionality, or intangible assets central to the Company&apos;s value proposition.
+        </Text>
+      </BodyPage>
+
+      {/* 6 — RR 59-60 part 1 */}
+      <BodyPage data={data} section="§6 Methodology">
+        <Text style={s.h2}>Revenue Ruling 59-60 Factors</Text>
+        {RR59_60_FACTORS.slice(0, 4).map((f, i) => (
+          <View key={i} wrap={false}>
+            <Text style={s.h3}>{i + 1}. {f.title}</Text>
+            <Text style={s.p}>{f.body}</Text>
+          </View>
+        ))}
+      </BodyPage>
+
+      {/* 6 — RR 59-60 part 2 */}
+      <BodyPage data={data} section="§6 Methodology">
+        <Text style={s.h2}>Revenue Ruling 59-60 Factors (continued)</Text>
+        {RR59_60_FACTORS.slice(4).map((f, i) => (
+          <View key={i} wrap={false}>
+            <Text style={s.h3}>{i + 5}. {f.title}</Text>
+            <Text style={s.p}>{f.body}</Text>
+          </View>
+        ))}
+        <Text style={s.exhibit}>Exhibit 6-1 — Approach Selection</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "28%" }]}>Approach</Text>
+            <Text style={[s.th, { width: "18%" }]}>Conclusion</Text>
+            <Text style={[s.th, { width: "54%" }]}>Rationale</Text>
+          </View>
+          <ApproachRow
+            approach="Market Approach"
+            decision={r.method === "opm_backsolve" ? "Adopted" : "Considered"}
+            rationale={
+              r.method === "opm_backsolve"
+                ? "Recent arm's-length financing provides objective market-based evidence of equity value."
+                : "Equity value supplied directly; backsolve not employed."
+            }
+          />
+          <ApproachRow approach="Income Approach" decision="Not selected" rationale="Subjective long-range projections not appropriate at current stage." />
+          <ApproachRow approach="Asset-Based Approach" decision="Not selected" rationale="Does not reflect going-concern and intangible value." />
+        </View>
+      </BodyPage>
+
+      {/* 7. Equity Value */}
+      <BodyPage data={data} section="§7 Equity Value">
+        <H1>7. Determination of Total Equity Value</H1>
+        <Text style={s.p}>Basis of value: {valueBasis}.</Text>
         {r.method === "opm_backsolve" ? (
           <>
-            <Text style={styles.p}>
-              We applied the OPM backsolve method, solving for the total equity value at which the Option Pricing Method
-              allocates a per-share value to the {r.backsolve?.seriesName} equal to its most recent issuance price of{" "}
-              {fmtShare(r.backsolve?.targetPricePerShare ?? 0)} per share
-              {r.backsolve?.roundName ? ` (${r.backsolve.roundName})` : ""}. This anchors the valuation to an objective,
-              arm&apos;s-length transaction.
+            <Text style={s.p}>
+              We applied the OPM backsolve technique, solving for total equity value such that the OPM allocates a
+              per-share value to {r.backsolve?.seriesName} equal to its issuance price of{" "}
+              {fmtShare(r.backsolve?.targetPricePerShare ?? 0)}
+              {r.backsolve?.roundName ? ` (${r.backsolve.roundName})` : ""}. This anchors the analysis to an objective,
+              arm&apos;s-length transaction negotiated between sophisticated parties.
             </Text>
-            <Text style={styles.exhibitCap}>Exhibit 5 — Backsolve to Recent Transaction</Text>
-            <View style={styles.table}>
+            <Text style={s.exhibit}>Exhibit 7-1 — Backsolve Calibration</Text>
+            <View style={s.table}>
               <KV label="Reference security" value={r.backsolve?.seriesName ?? "—"} />
-              <KV label="Issuance price per share" value={fmtShare(r.backsolve?.targetPricePerShare ?? 0)} />
-              <KV label="OPM-solved price per share (check)" value={fmtShare(r.backsolve?.solvedPricePerShare ?? 0)} />
+              <KV label="Transaction price per share" value={fmtShare(r.backsolve?.targetPricePerShare ?? 0)} />
+              <KV label="OPM-implied price (verification)" value={fmtShare(r.backsolve?.solvedPricePerShare ?? 0)} />
               <KV label="Implied total equity value" value={fmtMoney(r.equityValue)} highlight />
             </View>
           </>
         ) : (
           <>
-            <Text style={styles.p}>
-              The total equity value of {fmtMoney(r.equityValue)} was determined by an independent assessment supplied for
-              this analysis and allocated to the Company&apos;s securities using the Option Pricing Method.
+            <Text style={s.p}>
+              Total equity value of {fmtMoney(r.equityValue)} was determined based on an independent assessment and
+              allocated using the OPM.
             </Text>
-            <View style={styles.table}>
+            <View style={s.table}>
               <KV label="Total equity value" value={fmtMoney(r.equityValue)} highlight />
             </View>
           </>
         )}
+        <Text style={s.p}>
+          The backsolve procedure iterates on total equity value until the OPM-derived per-share value for the reference
+          preferred series matches the observed transaction price, holding OPM assumptions (volatility, time to liquidity,
+          risk-free rate) constant. See Appendix A for breakpoint and allocation detail.
+        </Text>
+      </BodyPage>
 
-        <H1 id="alloc">8. Allocation of Equity Value</H1>
-        <Text style={styles.h2}>Allocation Methods</Text>
-        <Text style={styles.p}>
-          The AICPA guidelines describe three methods for allocating equity value among security classes: the Current Value
-          Method (&quot;CVM&quot;), the Probability-Weighted Expected Return Method (&quot;PWERM&quot;), and the Option
-          Pricing Method (&quot;OPM&quot;). Given the Company&apos;s complex capital structure with differing liquidation
-          preferences and conversion rights, an uncertain exit horizon, and a range of possible future outcomes, the OPM was
-          considered the most appropriate method.
+      {/* 8. Allocation */}
+      <BodyPage data={data} section="§8 Allocation">
+        <H1>8. Allocation of Equity Value</H1>
+        <Text style={s.h2}>Selection of Allocation Method</Text>
+        <Text style={s.p}>
+          The AICPA guide describes three primary methods for allocating enterprise value among security classes: the
+          Current Value Method (CVM), Probability-Weighted Expected Return Method (PWERM), and Option Pricing Method (OPM).
+          The following table summarizes each method and our selection rationale.
         </Text>
-        <Text style={styles.h2}>Option Pricing Method</Text>
-        <Text style={styles.p}>
-          The OPM treats each class of equity as a call option on the Company&apos;s total equity value, with exercise
-          prices (&quot;breakpoints&quot;) reflecting the liquidation preferences, participation and conversion rights, and
-          option exercise prices in the capital structure. The value within each tranche between consecutive breakpoints is
-          estimated using the Black-Scholes-Merton option model and allocated to the securities participating in that
-          tranche. The detailed breakpoint analysis, option values, and distribution of value are presented in the
-          Appendix.
-        </Text>
-        <Text style={styles.exhibitCap}>Exhibit 6 — OPM Inputs</Text>
-        <View style={styles.table}>
-          <KV label="Time to liquidity event" value={`${a.timeToLiquidity.toFixed(2)} years`} />
-          <KV label="Equity volatility" value={fmtPct(a.volatility)} />
-          <KV label="Risk-free rate" value={fmtPct(a.riskFreeRate, 2)} />
-          <KV label="Dividend yield" value={fmtPct(a.dividendYield, 2)} />
+        <Text style={s.exhibit}>Exhibit 8-1 — Allocation Method Comparison</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "18%" }]}>Method</Text>
+            <Text style={[s.th, { width: "10%" }]}>Selected</Text>
+            <Text style={[s.th, { width: "32%" }]}>Description</Text>
+            <Text style={[s.th, { width: "40%" }]}>Rationale</Text>
+          </View>
+          {ALLOCATION_METHODS.map((m) => (
+            <View style={s.tr} key={m.method}>
+              <Text style={[s.tdBold, { width: "18%" }]}>{m.method}</Text>
+              <Text style={[s.td, { width: "10%" }]}>{m.selected ? "Yes" : "No"}</Text>
+              <Text style={[s.td, { width: "32%" }]}>{m.description}</Text>
+              <Text style={[s.td, { width: "40%" }]}>{m.rationale}</Text>
+            </View>
+          ))}
         </View>
+      </BodyPage>
 
-        <H1 id="conclusion">9. Conclusion of Value</H1>
-        <Text style={styles.p}>
-          Based on the breakpoint analysis and capital structure detailed in the Appendix, and after applying the discount
-          for lack of marketability described below, the fair market value of the Company&apos;s common stock is estimated
-          at {fmtShare(r.concludedFmv)} per share on a non-marketable, non-controlling basis as of {fmtDate(data.meta.valuationDate)}.
+      {/* 8 cont — OPM */}
+      <BodyPage data={data} section="§8 Allocation">
+        <Text style={s.h2}>Option Pricing Method</Text>
+        <Text style={s.p}>
+          Under the OPM, each equity class is modeled as a call option on total equity value with exercise prices at
+          cumulative breakpoints derived from liquidation preferences, participation rights, conversion provisions, and
+          option strikes. Incremental value in each tranche is estimated via the Black-Scholes-Merton model and allocated
+          to participating classes based on marginal economic interest. Technical detail is presented in Appendices A and E.
         </Text>
-        <View style={styles.table}>
+        <Text style={s.exhibit}>Exhibit 8-2 — OPM Assumptions</Text>
+        <View style={s.table}>
+          <KV label="Expected time to liquidity" value={`${a.timeToLiquidity.toFixed(2)} years`} />
+          <KV label="Equity volatility (σ)" value={fmtPct(a.volatility)} />
+          <KV label="Risk-free rate (r)" value={fmtPct(a.riskFreeRate, 2)} />
+          <KV label="Dividend yield (q)" value={fmtPct(a.dividendYield, 2)} />
+          <KV label="Total equity value (S₀)" value={fmtMoney(r.equityValue)} />
+        </View>
+        <Text style={s.p}>
+          At the concluded assumptions, the OPM allocates {fmtShare(r.marketableCommonPerShare)} per share to common stock
+          on a marketable basis before application of the DLOM.
+        </Text>
+      </BodyPage>
+
+      {/* 9. Conclusion */}
+      <BodyPage data={data} section="§9 Conclusion">
+        <H1>9. Conclusion of Value</H1>
+        <Text style={s.p}>
+          After allocating total equity value among the Company&apos;s securities using the OPM and applying the discount
+          for lack of marketability described in Section 10, the fair market value of the Company&apos;s common stock is
+          estimated as follows:
+        </Text>
+        <View style={s.table}>
           <KV label="Marketable common value per share" value={fmtShare(r.marketableCommonPerShare)} />
-          <KV label={`Less: DLOM (${fmtPct(r.dlom.value)})`} value={`(${fmtShare(r.marketableCommonPerShare - r.concludedFmv)})`} />
+          <KV label={`Less: DLOM — ${r.dlom.method} (${fmtPct(r.dlom.value)})`} value={`(${fmtShare(r.marketableCommonPerShare - r.concludedFmv)})`} />
           <KV label="Concluded fair market value per share" value={fmtShare(r.concludedFmv)} highlight />
         </View>
-        <Footer data={data} />
-      </Page>
+        <Text style={s.p}>
+          This conclusion is expressed on a non-marketable, non-controlling basis as of {fmtDate(data.meta.valuationDate)}.
+          It is subject to the assumptions and limiting conditions herein and to analyst review where the report status is
+          preliminary.
+        </Text>
+        <Text style={s.h2}>Value Reconciliation</Text>
+        <Text style={s.exhibit}>Exhibit 9-1 — Common Stock Value Reconciliation</Text>
+        <View style={s.table}>
+          <KV label="Total equity value" value={fmtMoney(r.equityValue)} />
+          <KV label="Common aggregate value (OPM)" value={fmtMoney(commonAlloc?.value ?? 0)} />
+          <KV label="Common shares (fully diluted)" value={fmtShares(commonAlloc?.shares ?? r.capStructure.commonShares)} />
+          <KV label="Marketable value per common share" value={fmtShare(r.marketableCommonPerShare)} />
+          <KV label="DLOM" value={fmtPct(r.dlom.value)} />
+          <KV label="Concluded FMV per common share" value={fmtShare(r.concludedFmv)} highlight />
+        </View>
+      </BodyPage>
 
-      {/* ===== 10. PREMIUMS & DISCOUNTS + 11. SENSITIVITY ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="dlom">10. Premiums and Discounts</H1>
-        <Text style={styles.p}>
-          The final value of a closely-held interest may differ from the value indicated by the valuation methods after
-          applying premiums or discounts, which depend on the standard of value and the rights of the interest being
-          valued.
+      {/* 10. DLOM narrative */}
+      <BodyPage data={data} section="§10 DLOM">
+        <H1>10. Premiums and Discounts</H1>
+        <Text style={s.p}>
+          The value of a closely held equity interest may differ from a pro-rata share of enterprise value after
+          application of premiums or discounts reflecting control, marketability, and other factors relevant to the
+          standard and level of value.
         </Text>
-        <Text style={styles.h2}>Discount for Lack of Marketability</Text>
-        <Text style={styles.p}>
-          A discount for lack of marketability (&quot;DLOM&quot;) compensates for the difficulty of selling shares that are
-          not traded on a public exchange. Shares in privately held companies lack the liquidity of publicly traded shares
-          and are therefore worth less than an otherwise comparable marketable share. We estimated the DLOM using an
-          option-based model, applying the {r.dlom.method === "finnerty" ? "Finnerty (2012) average-strike put option model" : "Chaffee (1993) protective put model"} as the
-          concluded method, with the alternative model presented for reference.
+        <Text style={s.h2}>Discount for Lack of Marketability</Text>
+        {DLOM_NARRATIVE.map((para, i) => (
+          <Text key={i} style={s.p}>
+            {para}
+          </Text>
+        ))}
+        <Text style={s.p}>
+          We applied the{" "}
+          {r.dlom.method === "finnerty"
+            ? "Finnerty (2012) average-strike put option model"
+            : "Chaffee (1993) protective put model"}{" "}
+          as the concluded DLOM methodology, with the alternative model shown for reference. The DLOM is applied to the
+          marketable common stock value allocated by the OPM.
         </Text>
-        <Text style={styles.exhibitCap}>Exhibit 7 — DLOM Analysis</Text>
-        <View style={styles.table}>
-          <KV label="Holding period to liquidity (years)" value={r.dlom.holdingPeriod.toFixed(2)} />
-          <KV label="Volatility" value={fmtPct(r.dlom.volatility)} />
-          <KV label="Finnerty (2012) average-strike put" value={fmtPct(r.dlom.finnerty)} />
-          <KV label="Chaffee (1993) protective put" value={fmtPct(r.dlom.chaffee)} />
+      </BodyPage>
+
+      {/* 10 cont — DLOM exhibit */}
+      <BodyPage data={data} section="§10 DLOM">
+        <Text style={s.exhibit}>Exhibit 10-1 — DLOM Computation</Text>
+        <View style={s.table}>
+          <KV label="Concluded method" value={r.dlom.method === "finnerty" ? "Finnerty (2012)" : "Chaffee (1993)"} />
+          <KV label="Holding period (years)" value={r.dlom.holdingPeriod.toFixed(2)} />
+          <KV label="Volatility input" value={fmtPct(r.dlom.volatility)} />
+          <KV label="Risk-free rate" value={fmtPct(a.riskFreeRate, 2)} />
+          <KV label="Finnerty implied discount" value={fmtPct(r.dlom.finnerty)} />
+          <KV label="Chaffee implied discount" value={fmtPct(r.dlom.chaffee)} />
           <KV label="Concluded DLOM" value={fmtPct(r.dlom.value)} highlight />
         </View>
-
-        <H1 id="sensitivity">11. Sensitivity Analysis</H1>
-        <Text style={styles.p}>
-          The following tables present the sensitivity of the concluded common stock fair market value to changes in key
-          assumptions, holding all else constant.
+        <Text style={s.exhibit}>Exhibit 10-2 — Selected Empirical Studies (Reference)</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "40%" }]}>Source</Text>
+            <Text style={[s.th, { width: "25%" }]}>Period</Text>
+            <Text style={[s.th, { width: "35%" }]}>Indicative range</Text>
+          </View>
+          {DLOM_STUDIES.map((row) => (
+            <View style={s.tr} key={row.source}>
+              <Text style={[s.td, { width: "40%" }]}>{row.source}</Text>
+              <Text style={[s.td, { width: "25%" }]}>{row.period}</Text>
+              <Text style={[s.td, { width: "35%" }]}>{row.median}</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={s.note}>
+          Empirical study ranges are provided for context only; the concluded DLOM is based on the option-based model
+          using company-specific inputs.
         </Text>
-        <View style={{ flexDirection: "row", gap: 10 }}>
+      </BodyPage>
+
+      {/* 11. Sensitivity */}
+      <BodyPage data={data} section="§11 Sensitivity">
+        <H1>11. Sensitivity Analysis</H1>
+        <Text style={s.p}>
+          The concluded fair market value depends on assumptions that are inherently uncertain. The following one-way
+          sensitivity tables illustrate the impact of changes in volatility, time to liquidity, and DLOM holding period,
+          holding other variables constant.
+        </Text>
+        <View style={{ flexDirection: "row", gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <SensTable title="Volatility" rows={r.sensitivity.volatility} fmtInput={(v) => fmtPct(v)} base={a.volatility} />
+            <SensTable title="Volatility (σ)" rows={r.sensitivity.volatility} fmtInput={(v) => fmtPct(v)} base={a.volatility} />
           </View>
           <View style={{ flex: 1 }}>
-            <SensTable title="Years to liquidity" rows={r.sensitivity.timeToLiquidity} fmtInput={(v) => `${v.toFixed(2)}`} base={a.timeToLiquidity} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <SensTable title="DLOM holding period" rows={r.sensitivity.dlom} fmtInput={(v) => `${v.toFixed(2)}`} base={r.dlom.holdingPeriod} />
+            <SensTable title="Time to liquidity" rows={r.sensitivity.timeToLiquidity} fmtInput={(v) => `${v.toFixed(2)} yr`} base={a.timeToLiquidity} />
           </View>
         </View>
-        <Footer data={data} />
-      </Page>
+        <View style={{ marginTop: 8 }}>
+          <SensTable title="DLOM holding period" rows={r.sensitivity.dlom} fmtInput={(v) => `${v.toFixed(2)} yr`} base={r.dlom.holdingPeriod} />
+        </View>
+      </BodyPage>
 
-      {/* ===== 12. ASSUMPTIONS & LIMITING CONDITIONS ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="assumptions">12. Assumptions and Limiting Conditions</H1>
-        {[
-          "The conclusion of value arrived at herein is valid only for the stated purpose and only as of the Valuation Date. Subsequent events, including new financings or material changes in operations or market conditions, may materially affect the conclusion and would generally require an updated valuation.",
-          "Financial and capitalization information provided by the Company or its representatives has been accepted without verification as fully and correctly reflecting the enterprise's conditions and operating results. We have not audited, reviewed, or compiled this information and express no assurance on it.",
-          "Public, industry, and statistical information has been obtained from sources believed to be reliable, but we make no representation as to its accuracy or completeness and have performed no procedures to corroborate it.",
-          "We do not provide assurance on the achievability of any results forecasted by or for the Company; actual results may differ materially from expectations.",
-          "The conclusion of value assumes that the current level of management expertise and effectiveness will be maintained and that the character and integrity of the enterprise will not be materially changed.",
-          "The Option Pricing Method assumes a single liquidity event at the expected time to liquidity, with equity value distributed according to the rights and preferences in the capital structure as of the Valuation Date.",
-          "Volatility, time to liquidity, and the risk-free rate are estimates based on guideline public companies and prevailing market data; reasonable alternative inputs would produce different results, as illustrated in the sensitivity analysis.",
-          "Outstanding convertible instruments (e.g., SAFEs or convertible notes) that have not yet converted are not separately modeled unless reflected in the capitalization table provided; the reviewing analyst should confirm their treatment.",
-          "This report and the conclusion of value are for the exclusive use of the Company for the specific purposes noted herein and may not be used for any other purpose or by any other party. They do not constitute investment, legal, or tax advice.",
-          "No part of this report may be disseminated to the public through any means of communication without prior written consent.",
-          "We have no obligation to update this report for information or events arising after the report date, and no responsibility for any unauthorized change to this report.",
-          "An actual transaction in the subject interest may occur at a higher or lower value depending on the circumstances and the motivations and knowledge of the parties at that time.",
-          "No opinion is intended to be expressed on matters that require legal or other specialized expertise beyond that customarily employed by valuation analysts.",
-        ].map((t, i) => (
-          <Numbered key={i} i={i + 1}>{t}</Numbered>
+      {/* 11 cont — matrix */}
+      <BodyPage data={data} section="§11 Sensitivity">
+        <Text style={s.h2}>Two-Way Sensitivity Matrix</Text>
+        <Text style={s.p}>
+          The matrix below presents concluded common stock FMV across combinations of equity volatility and time to
+          liquidity. The cell corresponding to base case assumptions is shown in bold.
+        </Text>
+        <Text style={s.exhibit}>Exhibit 11-1 — FMV Sensitivity (Volatility × Time to Liquidity)</Text>
+        {data.sensitivityMatrix?.length ? (
+          <SensitivityMatrixTable cells={data.sensitivityMatrix} baseVol={a.volatility} baseTime={a.timeToLiquidity} />
+        ) : (
+          <Text style={s.note}>Matrix not computed for this report revision.</Text>
+        )}
+        <Text style={s.p}>
+          Reasonable alternative assumptions within the ranges shown could produce FMV outcomes materially different from
+          the base case. The reviewing analyst should confirm that selected assumptions are supportable given the
+          Company&apos;s risk profile and expected path to liquidity.
+        </Text>
+      </BodyPage>
+
+      {/* 12. Assumptions part 1 */}
+      <BodyPage data={data} section="§12 Assumptions">
+        <H1>12. Assumptions and Limiting Conditions</H1>
+        {ASSUMPTIONS_EXTENDED.slice(0, assumptionsMid).map((t, i) => (
+          <Numbered key={i} i={i + 1}>
+            {t}
+          </Numbered>
         ))}
+      </BodyPage>
 
-        <H1 id="rep">13. Valuation Analyst&apos;s Representation</H1>
-        <Bullet>The statements of fact contained in this report are true and correct to the best of our knowledge and belief.</Bullet>
-        <Bullet>The reported analyses, opinions, and conclusions are limited only by the reported assumptions and limiting conditions and are our impartial, unbiased professional analyses, opinions, and conclusions.</Bullet>
-        <Bullet>We have no present or prospective interest in the Company or the property that is the subject of this report and no personal interest with respect to the parties involved.</Bullet>
-        <Bullet>We have no bias with respect to the subject of this report or to the parties involved.</Bullet>
-        <Bullet>Our engagement was not contingent upon developing or reporting predetermined results, and our compensation is not contingent on the conclusion of value.</Bullet>
-        <Bullet>The economic and financial analyses were prepared by, and the conclusion of value reached under the supervision of, the qualified valuation analyst identified below.</Bullet>
+      {/* 12 cont */}
+      <BodyPage data={data} section="§12 Assumptions">
+        <Text style={s.h2}>Assumptions and Limiting Conditions (continued)</Text>
+        {ASSUMPTIONS_EXTENDED.slice(assumptionsMid).map((t, i) => (
+          <Numbered key={i} i={assumptionsMid + i + 1}>
+            {t}
+          </Numbered>
+        ))}
+      </BodyPage>
 
-        <View style={{ flexDirection: "row", marginTop: 24, justifyContent: "space-between" }}>
-          <View style={{ width: "45%" }}>
-            <View style={{ borderTopWidth: 0.5, borderTopColor: C.text, paddingTop: 4 }}>
-              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>{data.meta.preparedByName || "Equitr Valuations"}</Text>
-              <Text style={{ fontSize: 8, color: C.muted }}>Prepared by</Text>
+      {/* 13. Representation */}
+      <BodyPage data={data} section="§13 Representation">
+        <H1>13. Valuation Analyst&apos;s Representation</H1>
+        <Text style={s.p}>
+          To the best of our knowledge and belief, the following statements are true and correct:
+        </Text>
+        {ANALYST_REPRESENTATION.map((t, i) => (
+          <Bullet key={i}>{t}</Bullet>
+        ))}
+        <View style={{ flexDirection: "row", marginTop: 32, justifyContent: "space-between" }}>
+          <View style={{ width: "44%" }}>
+            <View style={s.sigLine}>
+              <Text style={{ fontSize: 10, fontFamily: "Times-Bold" }}>{data.meta.preparedByName || "Equitr Valuations"}</Text>
+              <Text style={{ fontSize: 8, color: BRAND.muted }}>Prepared by</Text>
             </View>
           </View>
-          <View style={{ width: "45%" }}>
-            <View style={{ borderTopWidth: 0.5, borderTopColor: C.text, paddingTop: 4 }}>
-              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>{data.meta.reviewedByName || (isFinal ? "—" : "Pending review")}</Text>
-              <Text style={{ fontSize: 8, color: C.muted }}>Reviewed by{data.meta.reviewedAt ? ` · ${fmtDate(data.meta.reviewedAt)}` : ""}</Text>
+          <View style={{ width: "44%" }}>
+            <View style={s.sigLine}>
+              <Text style={{ fontSize: 10, fontFamily: "Times-Bold" }}>
+                {data.meta.reviewedByName || (isFinal ? "—" : "Pending review")}
+              </Text>
+              <Text style={{ fontSize: 8, color: BRAND.muted }}>
+                Reviewed by{data.meta.reviewedAt ? ` · ${fmtDate(data.meta.reviewedAt)}` : ""}
+              </Text>
             </View>
           </View>
         </View>
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== APPENDIX: OPM ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <H1 id="appendix">Appendix — Option Pricing Model to Allocate Value</H1>
-
-        <Text style={styles.h3}>A.1 Capitalization Detail</Text>
-        <Text style={styles.note}>LP = liquidation preference. Seniority ranked with 1 most senior. OIP = original issue price.</Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "30%" }]}>Class</Text>
-            <Text style={[styles.th, { width: "12%" }, center]}>LP</Text>
-            <Text style={[styles.th, { width: "12%" }, center]}>Mult.</Text>
-            <Text style={[styles.th, { width: "13%" }, center]}>Particip.</Text>
-            <Text style={[styles.th, { width: "16%" }, right]}>OIP</Text>
-            <Text style={[styles.th, { width: "17%" }, right]}>Shares</Text>
+      {/* Appendix A.1 */}
+      <BodyPage data={data} section="Appendix A">
+        <H1>Appendix A — Option Pricing Model</H1>
+        <Text style={s.h2}>A.1 Capitalization Detail</Text>
+        <Text style={s.note}>LP = liquidation preference. Seniority: 1 = most senior. OIP = original issue price.</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "30%" }]}>Class</Text>
+            <Text style={[s.th, { width: "12%" }, { textAlign: "center" }]}>LP</Text>
+            <Text style={[s.th, { width: "12%" }, { textAlign: "center" }]}>Mult.</Text>
+            <Text style={[s.th, { width: "13%" }, { textAlign: "center" }]}>Part.</Text>
+            <Text style={[s.th, { width: "16%" }, { textAlign: "right" }]}>OIP</Text>
+            <Text style={[s.th, { width: "17%" }, { textAlign: "right" }]}>Shares</Text>
           </View>
-          <View style={styles.tr}>
-            <Text style={[styles.td, { width: "30%" }]}>Common stock</Text>
-            <Text style={[styles.td, { width: "12%" }, center]}>—</Text>
-            <Text style={[styles.td, { width: "12%" }, center]}>—</Text>
-            <Text style={[styles.td, { width: "13%" }, center]}>—</Text>
-            <Text style={[styles.td, { width: "16%" }, right]}>$0.0000</Text>
-            <Text style={[styles.td, { width: "17%" }, right]}>{fmtShares(r.capStructure.commonShares)}</Text>
+          <View style={s.tr}>
+            <Text style={[s.td, { width: "30%" }]}>Common stock</Text>
+            <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>—</Text>
+            <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>—</Text>
+            <Text style={[s.td, { width: "13%" }, { textAlign: "center" }]}>—</Text>
+            <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>$0.0000</Text>
+            <Text style={[s.td, { width: "17%" }, { textAlign: "right" }]}>{fmtShares(r.capStructure.commonShares)}</Text>
           </View>
           {r.capStructure.preferred.map((p) => (
-            <View style={styles.tr} key={p.id}>
-              <Text style={[styles.td, { width: "30%" }]}>{p.name}</Text>
-              <Text style={[styles.td, { width: "12%" }, center]}>Y ({p.seniority})</Text>
-              <Text style={[styles.td, { width: "12%" }, center]}>{p.liquidationMultiple}x</Text>
-              <Text style={[styles.td, { width: "13%" }, center]}>{p.participating ? "Yes" : "No"}</Text>
-              <Text style={[styles.td, { width: "16%" }, right]}>{fmtShare(p.originalIssuePrice)}</Text>
-              <Text style={[styles.td, { width: "17%" }, right]}>{fmtShares(p.shares)}</Text>
+            <View style={s.tr} key={p.id}>
+              <Text style={[s.td, { width: "30%" }]}>{p.name}</Text>
+              <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>Y ({p.seniority})</Text>
+              <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>{p.liquidationMultiple}x</Text>
+              <Text style={[s.td, { width: "13%" }, { textAlign: "center" }]}>{p.participating ? "Yes" : "No"}</Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>{fmtShare(p.originalIssuePrice)}</Text>
+              <Text style={[s.td, { width: "17%" }, { textAlign: "right" }]}>{fmtShares(p.shares)}</Text>
             </View>
           ))}
           {r.capStructure.options.map((o) => (
-            <View style={styles.tr} key={o.strike}>
-              <Text style={[styles.td, { width: "30%" }]}>Options @ {fmtShare(o.strike)}</Text>
-              <Text style={[styles.td, { width: "12%" }, center]}>—</Text>
-              <Text style={[styles.td, { width: "12%" }, center]}>—</Text>
-              <Text style={[styles.td, { width: "13%" }, center]}>—</Text>
-              <Text style={[styles.td, { width: "16%" }, right]}>{fmtShare(o.strike)}</Text>
-              <Text style={[styles.td, { width: "17%" }, right]}>{fmtShares(o.shares)}</Text>
+            <View style={s.tr} key={o.strike}>
+              <Text style={[s.td, { width: "30%" }]}>Options @ {fmtShare(o.strike)}</Text>
+              <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>—</Text>
+              <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>—</Text>
+              <Text style={[s.td, { width: "13%" }, { textAlign: "center" }]}>—</Text>
+              <Text style={[s.td, { width: "16%" }, { textAlign: "right" }]}>{fmtShare(o.strike)}</Text>
+              <Text style={[s.td, { width: "17%" }, { textAlign: "right" }]}>{fmtShares(o.shares)}</Text>
             </View>
           ))}
         </View>
+      </BodyPage>
 
-        <Text style={styles.h3}>A.2 Breakpoint Analysis</Text>
-        <Text style={styles.p}>
-          The breakpoints are the equity-value thresholds at which the allocation of proceeds among classes changes, based
-          on liquidation preferences, participation and conversion rights, and option exercise prices.
+      {/* Appendix A.2 */}
+      <BodyPage data={data} section="Appendix A">
+        <Text style={s.h2}>A.2 Breakpoint Analysis</Text>
+        <Text style={s.p}>
+          Breakpoints are equity-value thresholds at which the marginal distribution of proceeds among classes changes.
         </Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "8%" }]}>#</Text>
-            <Text style={[styles.th, { width: "42%" }]}>Event</Text>
-            <Text style={[styles.th, { width: "22%" }, right]}>From</Text>
-            <Text style={[styles.th, { width: "28%" }, right]}>To</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "8%" }]}>#</Text>
+            <Text style={[s.th, { width: "42%" }]}>Event / breakpoint</Text>
+            <Text style={[s.th, { width: "22%" }, { textAlign: "right" }]}>From ($)</Text>
+            <Text style={[s.th, { width: "28%" }, { textAlign: "right" }]}>To ($)</Text>
           </View>
           {r.opm.tranches.map((t, i) => {
             const info = i > 0 ? r.opm.breakpointInfo[i - 1] : null;
-            const event = i === 0 ? "Liquidation preferences paid (most senior first)" : info?.event ?? "Allocation changes";
+            const event = i === 0 ? "Senior liquidation preferences satisfied" : info?.event ?? "Allocation regime change";
             return (
-              <View style={styles.tr} key={i}>
-                <Text style={[styles.td, { width: "8%" }]}>{i + 1}</Text>
-                <Text style={[styles.td, { width: "42%" }]}>{event}</Text>
-                <Text style={[styles.td, { width: "22%" }, right]}>{fmtMoney(t.from)}</Text>
-                <Text style={[styles.td, { width: "28%" }, right]}>{t.to == null ? "Infinity" : fmtMoney(t.to)}</Text>
+              <View style={s.tr} key={i}>
+                <Text style={[s.td, { width: "8%" }]}>{i + 1}</Text>
+                <Text style={[s.td, { width: "42%" }]}>{event}</Text>
+                <Text style={[s.td, { width: "22%" }, { textAlign: "right" }]}>{fmtMoney(t.from)}</Text>
+                <Text style={[s.td, { width: "28%" }, { textAlign: "right" }]}>{t.to == null ? "∞" : fmtMoney(t.to)}</Text>
               </View>
             );
           })}
         </View>
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== APPENDIX cont: option values + distribution ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <Text style={styles.h3}>A.3 Option Values and Incremental Value</Text>
-        <Text style={styles.note}>
-          Incremental value of tranche n = call option value at breakpoint n − call option value at breakpoint n+1, valued
-          with the Black-Scholes-Merton model (equity value {fmtMoney(r.equityValue)}, {a.timeToLiquidity.toFixed(2)}-year
-          term, {fmtPct(a.volatility)} volatility, {fmtPct(a.riskFreeRate, 2)} risk-free).
+      {/* Appendix A.3 */}
+      <BodyPage data={data} section="Appendix A">
+        <Text style={s.h2}>A.3 Option Values and Incremental Tranche Value</Text>
+        <Text style={s.note}>
+          Incremental tranche value = call(Kₙ) − call(Kₙ₊₁) using BSM with S₀ = {fmtMoney(r.equityValue)}, T ={" "}
+          {a.timeToLiquidity.toFixed(2)} years, σ = {fmtPct(a.volatility)}, r = {fmtPct(a.riskFreeRate, 2)}.
         </Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "10%" }]}>Tranche</Text>
-            <Text style={[styles.th, { width: "30%" }, right]}>Exercise price (breakpoint)</Text>
-            <Text style={[styles.th, { width: "30%" }, right]}>Call option value</Text>
-            <Text style={[styles.th, { width: "30%" }, right]}>Incremental value</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "10%" }]}>Tranche</Text>
+            <Text style={[s.th, { width: "30%" }, { textAlign: "right" }]}>Breakpoint K</Text>
+            <Text style={[s.th, { width: "30%" }, { textAlign: "right" }]}>Call value</Text>
+            <Text style={[s.th, { width: "30%" }, { textAlign: "right" }]}>Incremental</Text>
           </View>
           {r.opm.tranches.map((t, i) => (
-            <View style={styles.tr} key={i}>
-              <Text style={[styles.td, { width: "10%" }]}>{i + 1}</Text>
-              <Text style={[styles.td, { width: "30%" }, right]}>{fmtMoney(t.from)}</Text>
-              <Text style={[styles.td, { width: "30%" }, right]}>{fmtMoney(t.callValueLow)}</Text>
-              <Text style={[styles.td, { width: "30%" }, right]}>{fmtMoney(t.trancheValue)}</Text>
+            <View style={s.tr} key={i}>
+              <Text style={[s.td, { width: "10%" }]}>{i + 1}</Text>
+              <Text style={[s.td, { width: "30%" }, { textAlign: "right" }]}>{fmtMoney(t.from)}</Text>
+              <Text style={[s.td, { width: "30%" }, { textAlign: "right" }]}>{fmtMoney(t.callValueLow)}</Text>
+              <Text style={[s.td, { width: "30%" }, { textAlign: "right" }]}>{fmtMoney(t.trancheValue)}</Text>
             </View>
           ))}
-          <View style={styles.trTotal}>
-            <Text style={[styles.tdBold, { width: "70%" }]}>Total equity value</Text>
-            <Text style={[styles.tdBold, { width: "30%" }, right]}>{fmtMoney(r.equityValue)}</Text>
+          <View style={s.trTotal}>
+            <Text style={[s.tdBold, { width: "70%" }]}>Total equity value</Text>
+            <Text style={[s.tdBold, { width: "30%" }, { textAlign: "right" }]}>{fmtMoney(r.equityValue)}</Text>
           </View>
         </View>
+      </BodyPage>
 
-        <Text style={styles.h3}>A.4 Distribution of Value by Class</Text>
-        <Text style={styles.note}>Percentage of each tranche allocated to each class (marginal participation).</Text>
+      {/* Appendix A.4 pct */}
+      <BodyPage data={data} section="Appendix A">
+        <Text style={s.h2}>A.4 Distribution of Value — Percentage by Tranche</Text>
         <DistributionTable allocations={r.opm.allocations} tranches={r.opm.tranches} mode="pct" />
-        <Text style={styles.note}>Dollar value allocated to each class within each tranche.</Text>
-        <DistributionTable allocations={r.opm.allocations} tranches={r.opm.tranches} mode="usd" equityValue={r.equityValue} />
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
 
-      {/* ===== APPENDIX cont: valuation of each class ===== */}
-      <Page size="LETTER" style={styles.page}>
-        <Running data={data} />
-        <Text style={styles.h3}>A.5 Valuation of Each Equity Class</Text>
-        <View style={styles.table}>
-          <View style={styles.trHead}>
-            <Text style={[styles.th, { width: "30%" }]}>Class</Text>
-            <Text style={[styles.th, { width: "18%" }, right]}>Total value</Text>
-            <Text style={[styles.th, { width: "16%" }, right]}>Shares</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>Price/sh</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>DLOM</Text>
-            <Text style={[styles.th, { width: "12%" }, right]}>FMV/sh</Text>
-          </View>
+      {/* Appendix A.4 usd */}
+      <BodyPage data={data} section="Appendix A">
+        <Text style={s.h2}>A.4 Distribution of Value — Dollars by Tranche</Text>
+        <DistributionTable allocations={r.opm.allocations} tranches={r.opm.tranches} mode="usd" equityValue={r.equityValue} />
+      </BodyPage>
+
+      {/* Appendix A.5 */}
+      <BodyPage data={data} section="Appendix A">
+        <Text style={s.h2}>A.5 Valuation of Each Equity Class</Text>
+        <View style={s.table}>
+          <ClassHeaderRow />
           <EquityClassRow al={commonAlloc} dlom={r.dlom.value} fmv={r.concludedFmv} />
-          {prefAlloc.map((al) => <EquityClassRow key={al.key} al={al} />)}
-          {optAlloc.map((al) => <EquityClassRow key={al.key} al={al} />)}
-          <View style={styles.trTotal}>
-            <Text style={[styles.tdBold, { width: "30%" }]}>Total</Text>
-            <Text style={[styles.tdBold, { width: "18%" }, right]}>{fmtMoney(r.equityValue)}</Text>
-            <Text style={[styles.tdBold, { width: "16%" }, right]}>{fmtShares(r.capStructure.fullyDilutedShares)}</Text>
-            <Text style={[styles.tdBold, { width: "36%" }, right]}></Text>
+          {prefAlloc.map((al) => (
+            <EquityClassRow key={al.key} al={al} />
+          ))}
+          {optAlloc.map((al) => (
+            <EquityClassRow key={al.key} al={al} />
+          ))}
+          <View style={s.trTotal}>
+            <Text style={[s.tdBold, { width: "30%" }]}>Total</Text>
+            <Text style={[s.tdBold, { width: "18%" }, { textAlign: "right" }]}>{fmtMoney(r.equityValue)}</Text>
+            <Text style={[s.tdBold, { width: "52%" }]}></Text>
           </View>
         </View>
-        <Text style={styles.p}>
-          As shown, the fair market value of the common stock of the Company is {fmtShare(r.concludedFmv)} per share.
+      </BodyPage>
+
+      {/* Appendix B — GPC */}
+      <BodyPage data={data} section="Appendix B">
+        <H1>Appendix B — Guideline Public Company Volatility</H1>
+        {GPC_VOLATILITY_NARRATIVE.map((para, i) => (
+          <Text key={i} style={s.p}>
+            {para}
+          </Text>
+        ))}
+        <Text style={s.exhibit}>Exhibit B-1 — Selected Guideline Public Companies</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "36%" }]}>Company</Text>
+            <Text style={[s.th, { width: "12%" }]}>Ticker</Text>
+            <Text style={[s.th, { width: "14%" }, { textAlign: "right" }]}>σ (ann.)</Text>
+            <Text style={[s.th, { width: "38%" }]}>Relevance</Text>
+          </View>
+          {GPC_COMPANIES.map((g) => (
+            <View style={s.tr} key={g.ticker}>
+              <Text style={[s.td, { width: "36%" }]}>{g.name}</Text>
+              <Text style={[s.td, { width: "12%" }]}>{g.ticker}</Text>
+              <Text style={[s.td, { width: "14%" }, { textAlign: "right" }]}>{fmtPct(g.vol)}</Text>
+              <Text style={[s.td, { width: "38%" }]}>{g.note}</Text>
+            </View>
+          ))}
+          <View style={s.trTotal}>
+            <Text style={[s.tdBold, { width: "48%" }]}>Simple average (unweighted)</Text>
+            <Text style={[s.tdBold, { width: "14%" }, { textAlign: "right" }]}>{fmtPct(gpcMedian)}</Text>
+            <Text style={[s.tdBold, { width: "38%" }]}>Reference only</Text>
+          </View>
+        </View>
+        <Text style={s.p}>
+          The concluded volatility of {fmtPct(a.volatility)} reflects judgment within and around the GPC range, adjusted
+          for the Company&apos;s stage, size, and risk relative to the guideline set.
         </Text>
-        <Footer data={data} />
-      </Page>
+      </BodyPage>
+
+      {/* Appendix C — DLOM */}
+      <BodyPage data={data} section="Appendix C">
+        <H1>Appendix C — Marketability Discount Literature</H1>
+        <Text style={s.p}>
+          This appendix supplements Section 10 with additional context on empirical restricted stock and pre-IPO studies
+          commonly cited in private company valuations.
+        </Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "40%" }]}>Study / model</Text>
+            <Text style={[s.th, { width: "25%" }]}>Period</Text>
+            <Text style={[s.th, { width: "35%" }]}>Indicative discount</Text>
+          </View>
+          {DLOM_STUDIES.map((row) => (
+            <View style={s.tr} key={row.source}>
+              <Text style={[s.td, { width: "40%" }]}>{row.source}</Text>
+              <Text style={[s.td, { width: "25%" }]}>{row.period}</Text>
+              <Text style={[s.td, { width: "35%" }]}>{row.median}</Text>
+            </View>
+          ))}
+        </View>
+        {DLOM_NARRATIVE.map((para, i) => (
+          <Text key={i} style={s.p}>
+            {para}
+          </Text>
+        ))}
+      </BodyPage>
+
+      {/* Appendix D — Securities */}
+      <BodyPage data={data} section="Appendix D">
+        <H1>Appendix D — Securities Terms and Financing History</H1>
+        <Text style={s.h2}>Share Class Rights Summary</Text>
+        <View style={s.table}>
+          <View style={s.trHead}>
+            <Text style={[s.th, { width: "28%" }]}>Class</Text>
+            <Text style={[s.th, { width: "18%" }]}>Type</Text>
+            <Text style={[s.th, { width: "14%" }, { textAlign: "right" }]}>Liq. pref.</Text>
+            <Text style={[s.th, { width: "14%" }, { textAlign: "center" }]}>Part.</Text>
+            <Text style={[s.th, { width: "12%" }, { textAlign: "center" }]}>Senior.</Text>
+            <Text style={[s.th, { width: "14%" }]}>Notes</Text>
+          </View>
+          {(data.shareClassTerms?.length ? data.shareClassTerms : defaultShareTerms(r)).map((sc, i) => (
+            <View style={s.tr} key={i}>
+              <Text style={[s.td, { width: "28%" }]}>{sc.name}</Text>
+              <Text style={[s.td, { width: "18%" }]}>{sc.type}</Text>
+              <Text style={[s.td, { width: "14%" }, { textAlign: "right" }]}>{sc.liquidationPref}x</Text>
+              <Text style={[s.td, { width: "14%" }, { textAlign: "center" }]}>{sc.isParticipating ? "Yes" : "No"}</Text>
+              <Text style={[s.td, { width: "12%" }, { textAlign: "center" }]}>{sc.seniority}</Text>
+              <Text style={[s.td, { width: "14%" }]}>—</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={s.h2}>Financing History (Detail)</Text>
+        <Text style={s.p}>
+          See Exhibit 5-2 for round-level pricing. Preferred original issue prices in the OPM capitalization reflect
+          closed-round pricing where available.
+        </Text>
+      </BodyPage>
+
+      {/* Appendix E — BSM */}
+      <BodyPage data={data} section="Appendix E">
+        <H1>Appendix E — Black-Scholes-Merton Model</H1>
+        <Text style={s.p}>{BSM_APPENDIX}</Text>
+      </BodyPage>
+
+      {/* Glossary */}
+      <BodyPage data={data} section="Glossary">
+        <H1>Glossary of Terms</H1>
+        {GLOSSARY.map((g) => (
+          <View key={g.term} wrap={false} style={{ marginBottom: 6 }}>
+            <Text style={s.h3}>{g.term}</Text>
+            <Text style={s.pTight}>{g.definition}</Text>
+          </View>
+        ))}
+      </BodyPage>
+
+      {/* Bibliography */}
+      <BodyPage data={data} section="Bibliography">
+        <H1>Bibliography and Appraiser Qualifications</H1>
+        <Text style={s.h2}>References</Text>
+        {BIBLIOGRAPHY.map((ref, i) => (
+          <Numbered key={i} i={i + 1}>
+            {ref}
+          </Numbered>
+        ))}
+        <Text style={s.h2}>Appraiser Qualifications</Text>
+        <Text style={s.p}>{APPRAISER_QUALIFICATIONS}</Text>
+        <Text style={s.p}>
+          Report reference: {reportId} · {company} · Valuation date {fmtDate(data.meta.valuationDate)}
+        </Text>
+      </BodyPage>
     </Document>
   );
 }
 
-function CapRow({ label, shares, fd }: { label: string; shares: number; fd: number }) {
-  return (
-    <View style={styles.tr}>
-      <Text style={[styles.td, { width: "54%" }]}>{label}</Text>
-      <Text style={[styles.td, { width: "23%" }, right]}>{fmtShares(shares)}</Text>
-      <Text style={[styles.td, { width: "23%" }, right]}>{fmtPct(fd > 0 ? shares / fd : 0, 2)}</Text>
-    </View>
-  );
+function defaultFinancingRows(r: ValuationReportData["result"]) {
+  if (r.backsolve) {
+    return [
+      {
+        name: r.backsolve.roundName ?? r.backsolve.seriesName,
+        status: "closed",
+        closeDate: r.valuationDate,
+        preMoneyValuation: null,
+        investmentAmount: null,
+        pricePerShare: r.backsolve.targetPricePerShare,
+      },
+    ];
+  }
+  return [];
 }
 
-function ApproachRow({ approach, decision, rationale }: { approach: string; decision: string; rationale: string }) {
-  return (
-    <View style={styles.tr}>
-      <Text style={[styles.td, { width: "30%" }]}>{approach}</Text>
-      <Text style={[styles.tdBold, { width: "22%" }]}>{decision}</Text>
-      <Text style={[styles.td, { width: "48%" }]}>{rationale}</Text>
-    </View>
-  );
-}
-
-function EquityClassRow({ al, dlom, fmv }: { al?: GroupAllocation; dlom?: number; fmv?: number }) {
-  if (!al) return null;
-  const hasDlom = dlom != null && fmv != null;
-  return (
-    <View style={styles.tr}>
-      <Text style={[styles.td, { width: "30%" }]}>{al.label}</Text>
-      <Text style={[styles.td, { width: "18%" }, right]}>{fmtMoney(al.value)}</Text>
-      <Text style={[styles.td, { width: "16%" }, right]}>{fmtShares(al.shares)}</Text>
-      <Text style={[styles.td, { width: "12%" }, right]}>{fmtShare(al.perShare)}</Text>
-      <Text style={[styles.td, { width: "12%" }, right]}>{hasDlom ? `(${fmtPct(dlom!)})` : "—"}</Text>
-      <Text style={[styles.td, { width: "12%" }, right]}>{hasDlom ? fmtShare(fmv!) : "—"}</Text>
-    </View>
-  );
-}
-
-function SensTable({
-  title,
-  rows,
-  fmtInput,
-  base,
-}: {
-  title: string;
-  rows: { input: number; fmv: number }[];
-  fmtInput: (v: number) => string;
-  base: number;
-}) {
-  return (
-    <View style={styles.table}>
-      <View style={styles.trHead}>
-        <Text style={[styles.th, { width: "55%" }]}>{title}</Text>
-        <Text style={[styles.th, { width: "45%" }, right]}>FMV</Text>
-      </View>
-      {rows.map((row, i) => {
-        const isBase = Math.abs(row.input - base) < 1e-9;
-        return (
-          <View style={styles.tr} key={i}>
-            <Text style={[isBase ? styles.tdBold : styles.td, { width: "55%" }]}>{fmtInput(row.input)}{isBase ? " *" : ""}</Text>
-            <Text style={[isBase ? styles.tdBold : styles.td, { width: "45%" }, right]}>{fmtShare(row.fmv)}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-function DistributionTable({
-  allocations,
-  tranches,
-  mode,
-  equityValue,
-}: {
-  allocations: GroupAllocation[];
-  tranches: { marginalFractions: Record<string, number>; trancheValue: number }[];
-  mode: "pct" | "usd";
-  equityValue?: number;
-}) {
-  const classW = 28;
-  const colW = (100 - classW) / tranches.length;
-  return (
-    <View style={styles.table}>
-      <View style={styles.trHead}>
-        <Text style={[styles.th, { width: `${classW}%` }]}>Class</Text>
-        {tranches.map((_, i) => (
-          <Text key={i} style={[styles.th, { width: `${colW}%` }, right]}>{i + 1}</Text>
-        ))}
-      </View>
-      {allocations.map((al) => (
-        <View style={styles.tr} key={al.key}>
-          <Text style={[styles.td, { width: `${classW}%` }]}>{al.label}</Text>
-          {tranches.map((t, i) => {
-            const frac = t.marginalFractions[al.key] ?? 0;
-            const v = mode === "pct" ? fmtPct(frac, 1) : fmtMoney(frac * t.trancheValue);
-            return <Text key={i} style={[styles.td, { width: `${colW}%` }, right]}>{v}</Text>;
-          })}
-        </View>
-      ))}
-      <View style={styles.trTotal}>
-        <Text style={[styles.tdBold, { width: `${classW}%` }]}>Total</Text>
-        {tranches.map((t, i) => (
-          <Text key={i} style={[styles.tdBold, { width: `${colW}%` }, right]}>
-            {mode === "pct" ? "100%" : fmtMoney(t.trancheValue)}
-          </Text>
-        ))}
-      </View>
-      {mode === "usd" && equityValue != null && (
-        <View style={styles.trTotal}>
-          <Text style={[styles.tdBold, { width: `${classW}%` }]}>Equity value</Text>
-          <Text style={[styles.tdBold, { width: `${100 - classW}%` }, right]}>{fmtMoney(equityValue)}</Text>
-        </View>
-      )}
-    </View>
-  );
+function defaultShareTerms(r: ValuationReportData["result"]) {
+  const rows = [{ name: "Common Stock", type: "common", liquidationPref: 0, isParticipating: false, seniority: 0 }];
+  for (const p of r.capStructure.preferred) {
+    rows.push({
+      name: p.name,
+      type: "preferred",
+      liquidationPref: p.liquidationMultiple,
+      isParticipating: p.participating,
+      seniority: p.seniority,
+    });
+  }
+  return rows;
 }
