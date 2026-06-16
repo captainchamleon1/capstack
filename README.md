@@ -1,4 +1,4 @@
-# CapStack
+# Equitr
 
 Modern cap table management for startups — equity grants, SAFEs, round modeling, documents, and team access.
 
@@ -91,7 +91,7 @@ git push -u origin master
 | `APP_URL` | Your Railway app URL, e.g. `https://capstack-production.up.railway.app` |
 | `EMAIL_PROVIDER` | `resend` |
 | `RESEND_API_KEY` | From [resend.com](https://resend.com) |
-| `EMAIL_FROM` | `CapStack <notifications@yourdomain.com>` |
+| `EMAIL_FROM` | `Equitr <notifications@yourdomain.com>` |
 
 See [`.env.production.example`](.env.production.example) for the full list.
 

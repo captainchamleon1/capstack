@@ -1,4 +1,4 @@
-# Publishes CapStack to https://github.com/captainchamleon1/capstack
+# Publishes Equitr to https://github.com/captainchamleon1/capstack
 # Prerequisite: gh auth login (run once)
 
 $ErrorActionPreference = "Stop"

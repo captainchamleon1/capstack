@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: capstack
-      POSTGRES_PASSWORD: capstack
-      POSTGRES_DB: capstack
+      POSTGRES_USER: equitr
+      POSTGRES_PASSWORD: equitr
+      POSTGRES_DB: equitr
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U capstack -d capstack"]
+      test: ["CMD-SHELL", "pg_isready -U equitr -d equitr"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,7 +23,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://capstack:capstack@postgres:5432/capstack"
+      DATABASE_URL: "postgresql://equitr:equitr@postgres:5432/equitr"
       AUTH_SECRET: "${AUTH_SECRET:-change-this-to-a-random-32-char-string-in-production}"
       APP_URL: "${APP_URL:-http://localhost:3000}"
       EMAIL_PROVIDER: "${EMAIL_PROVIDER:-console}"

@@ -63,7 +63,7 @@ function stripHtml(html: string): string {
 
 async function sendViaResend(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "CapStack <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "Equitr <onboarding@resend.dev>";
 
   if (!apiKey) {
     return sendViaConsole(input);
@@ -99,7 +99,7 @@ async function sendViaResend(input: SendEmailInput): Promise<SendEmailResult> {
 }
 
 async function sendViaConsole(input: SendEmailInput): Promise<SendEmailResult> {
-  console.log("\n--- CapStack Email (console) ---");
+  console.log("\n--- Equitr Email (console) ---");
   console.log("To:", input.to);
   console.log("Subject:", input.subject);
   console.log("Text:", input.text ?? stripHtml(input.html));
@@ -129,14 +129,14 @@ export async function sendInviteEmail(params: {
   const inviteUrl = appUrl(`/invite/${params.token}`);
   return sendEmail({
     to: params.to,
-    subject: `You're invited to ${params.companyName} on CapStack`,
+    subject: `You're invited to ${params.companyName} on Equitr`,
     html: inviteEmailHtml({
       companyName: params.companyName,
       inviterName: params.inviterName,
       role: params.role,
       inviteUrl,
     }),
-    text: `${params.inviterName} invited you to join ${params.companyName} on CapStack as ${params.role}. Accept: ${inviteUrl}`,
+    text: `${params.inviterName} invited you to join ${params.companyName} on Equitr as ${params.role}. Accept: ${inviteUrl}`,
   });
 }
 
@@ -177,9 +177,9 @@ export async function sendPasswordResetEmail(params: {
   const resetUrl = appUrl(`/reset-password?token=${encodeURIComponent(params.token)}`);
   return sendEmail({
     to: params.to,
-    subject: "Reset your CapStack password",
+    subject: "Reset your Equitr password",
     html: passwordResetEmailHtml({ name: params.name, resetUrl }),
-    text: `Reset your CapStack password: ${resetUrl}`,
+    text: `Reset your Equitr password: ${resetUrl}`,
   });
 }
 

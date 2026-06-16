@@ -13,7 +13,7 @@ export function SplitMarketingLayout({
   headline,
   description,
   bullets,
-  footer = "© CapStack · Built for founders",
+  footer = "© Equitr · Built for founders",
 }: SplitMarketingLayoutProps) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-ink">

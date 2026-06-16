@@ -65,7 +65,7 @@ export function InviteAcceptPanel({ token }: { token: string }) {
     return (
       <SplitMarketingLayout
         headline="Team access, managed."
-        description="CapStack lets founders invite counsel, finance, and operators with role-based permissions — everyone sees what they need, nothing more."
+        description="Equitr lets founders invite counsel, finance, and operators with role-based permissions — everyone sees what they need, nothing more."
         bullets={["Owner, admin, and viewer roles", "Audit trail of all changes", "Secure invite links"]}
       >
         <div className="rounded-2xl border border-danger/20 bg-danger/5 panel-card p-8 text-center">

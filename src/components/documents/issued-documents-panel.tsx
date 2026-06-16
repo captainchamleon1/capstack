@@ -47,11 +47,11 @@ export function IssuedDocumentsPanel({ grantId, documents }: IssuedDocumentsPane
   }
 
   return (
-    <div className="rounded-lg border border-brand/20 bg-brand/5 p-4 space-y-3">
-      <p className="text-sm font-medium text-brand">
+    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+      <p className="text-sm font-medium text-emerald-400">
         Issuance documents generated ({documents.length})
       </p>
-      <p className="text-xs text-subtle-foreground">
+      <p className="text-xs text-zinc-500">
         Documents are created at grant issuance and cannot be regenerated later.
       </p>
       <div className="space-y-2">
@@ -60,9 +60,9 @@ export function IssuedDocumentsPanel({ grantId, documents }: IssuedDocumentsPane
           return (
             <div
               key={doc.id}
-              className="flex items-center justify-between rounded-md border border-border-default bg-surface-elevated/80 px-3 py-2"
+              className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/50 px-3 py-2"
             >
-              <span className="text-sm text-foreground">{doc.name}</span>
+              <span className="text-sm text-zinc-200">{doc.name}</span>
               {variant ? (
                 <div className="flex items-center gap-1">
                   <Button

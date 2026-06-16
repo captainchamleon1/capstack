@@ -22,12 +22,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "CapStack",
-    template: "%s · CapStack",
+    default: "Equitr",
+    template: "%s · Equitr",
   },
   description:
     "Professional cap table management for founders. Ownership, grants, fundraises, and compliance in one place.",
-  applicationName: "CapStack",
+  applicationName: "Equitr",
 };
 
 export default function RootLayout({

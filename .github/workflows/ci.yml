@@ -51,4 +51,4 @@ jobs:
         with:
           context: .
           push: false
-          tags: capstack:ci
+          tags: equitr:ci

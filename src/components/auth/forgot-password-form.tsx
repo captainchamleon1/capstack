@@ -45,7 +45,7 @@ export function ForgotPasswordForm() {
       <div>
         <h2 className="font-display text-2xl font-semibold text-foreground">Forgot password</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enter the email on your CapStack account.
+          Enter the email on your Equitr account.
         </p>
       </div>
 

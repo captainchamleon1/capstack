@@ -20,7 +20,7 @@
 | `APP_URL` | Your Railway URL (step 4) — update after first deploy |
 | `EMAIL_PROVIDER` | `resend` (required in production) |
 | `RESEND_API_KEY` | From [resend.com](https://resend.com) |
-| `EMAIL_FROM` | `CapStack <notifications@yourdomain.com>` |
+| `EMAIL_FROM` | `Equitr <notifications@yourdomain.com>` |
 
 ## 4. Public URL
 

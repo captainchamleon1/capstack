@@ -1,4 +1,4 @@
-# Creates the capstack role and database on local PostgreSQL 16.
+# Creates the Equitr role and database on local PostgreSQL 16.
 # Usage: .\scripts\setup-local-db.ps1
 # You will be prompted for the postgres superuser password once.
 
@@ -10,7 +10,7 @@ if (-not (Test-Path $psql)) {
 }
 
 $sql = Join-Path $PSScriptRoot "setup-local-db.sql"
-Write-Host "Creating capstack role and database..."
+Write-Host "Creating Equitr role and database..."
 & $psql -U postgres -f $sql
 
 if ($LASTEXITCODE -ne 0) {

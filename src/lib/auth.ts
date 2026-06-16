@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-const SESSION_COOKIE = "capstack_session";
+const SESSION_COOKIE = "equitr_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export interface SessionPayload {

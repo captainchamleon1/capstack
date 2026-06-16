@@ -74,7 +74,7 @@ export function AuthForm({ mode, defaultEmail, inviteToken, redirectTo }: AuthFo
   return (
     <SplitMarketingLayout
       headline="Ownership, modeled with precision."
-      description="CapStack gives founders a single source of truth for cap tables, equity grants, SAFEs, and board approvals — without the spreadsheet chaos."
+      description="Equitr gives founders a single source of truth for cap tables, equity grants, SAFEs, and board approvals — without the spreadsheet chaos."
       bullets={[
         "Live cap table & vesting",
         "Issuance documents at grant",
@@ -159,7 +159,7 @@ export function AuthForm({ mode, defaultEmail, inviteToken, redirectTo }: AuthFo
           </>
         ) : (
           <>
-            New to CapStack?{" "}
+            New to Equitr?{" "}
             <Link href="/signup" className="text-brand hover:underline">
               Create an account
             </Link>

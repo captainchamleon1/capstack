@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const SESSION_COOKIE = "capstack_session";
+const SESSION_COOKIE = "equitr_session";
 
 const publicPaths = [
+  "/",
   "/login",
   "/signup",
   "/forgot-password",
   "/reset-password",
   "/invite",
+  "/privacy",
+  "/terms",
+  "/security",
+  "/pricing",
+  "/409a",
   "/api/auth/login",
   "/api/auth/signup",
   "/api/auth/forgot-password",
