@@ -31,18 +31,18 @@ const whenYouNeed = [
 const process = [
   {
     step: "01",
-    title: "Request your valuation",
-    body: "Contact Equitr with your company details, cap table snapshot, and financials. We coordinate with an independent valuation provider.",
+    title: "Run the automated valuation",
+    body: "Equitr derives your cap structure from your live cap table, runs an OPM backsolve to your latest priced round, applies a DLOM, and produces a draft report in minutes.",
   },
   {
     step: "02",
-    title: "Receive your 409A report",
-    body: "Get a board-ready fair market value report with the methodology and conclusions your counsel expects for ISO/NSO grant pricing.",
+    title: "Analyst review & finalize",
+    body: "A qualified valuation analyst reviews the draft, adjusts assumptions if needed, and signs off. You get a board-ready PDF with breakpoint analysis and sensitivity tables.",
   },
   {
     step: "03",
     title: "Board adoption",
-    body: "Your board adopts the valuation as the company's official FMV. Equitr stores the effective date and per-share value in your workspace.",
+    body: "Your board adopts the valuation as the company's official FMV. Equitr can draft the board resolution and record the effective date in your workspace.",
   },
   {
     step: "04",
@@ -93,10 +93,10 @@ export default function Valuation409APage() {
           </span>
           <span className="text-muted-foreground">/ year · includes annual refresh</span>
           <Link
-            href="mailto:hello@equitr.app?subject=409A%20valuation%20inquiry"
+            href="/signup"
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand-bright"
           >
-            Request a 409A
+            Get started
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -223,12 +223,12 @@ export default function Valuation409APage() {
               <p className="mt-3 text-sm text-muted-foreground">
                 Independent valuation + annual refresh + Equitr FMV integration
               </p>
-              <a
-                href="mailto:hello@equitr.app?subject=409A%20valuation%20inquiry"
+              <Link
+                href="/signup"
                 className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand-bright"
               >
-                Request a 409A
-              </a>
+                Get started with Equitr
+              </Link>
               <p className="mt-4 text-center text-xs text-subtle-foreground">
                 Already on Equitr? Email hello@equitr.app to add 409A to your workspace.
               </p>

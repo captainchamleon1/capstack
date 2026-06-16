@@ -32,6 +32,7 @@ model Company {
   boardResolutions BoardResolution[]
   documents        Document[]
   auditEvents      AuditEvent[]
+  valuations       Valuation[]
 }
 
 model User {
@@ -251,6 +252,49 @@ model Document {
 
   company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   equityGrant   EquityGrant? @relation(fields: [equityGrantId], references: [id], onDelete: Cascade)
+}
+
+model Valuation {
+  id                       String    @id @default(cuid())
+  companyId                String
+  title                    String
+  valuationDate            DateTime
+  status                   String    @default("draft") // draft, in_review, final
+  method                   String    // opm_backsolve, opm_manual
+  dlomMethod               String    @default("finnerty") // finnerty, chaffee
+
+  // Headline results
+  concludedFmv             Float     @default(0)
+  marketableCommonPerShare Float     @default(0)
+  equityValue              Float     @default(0)
+  dlomValue                Float     @default(0)
+
+  // Assumptions
+  volatility               Float     @default(0)
+  timeToLiquidity          Float     @default(0)
+  riskFreeRate             Float     @default(0)
+  dividendYield            Float     @default(0)
+  holdingPeriod            Float     @default(0)
+
+  // Full input + result snapshots (JSON strings)
+  inputs                   String?
+  result                   String?
+
+  // Workflow
+  preparedById             String?
+  preparedByName           String?
+  reviewedById             String?
+  reviewedByName           String?
+  reviewedAt               DateTime?
+  reviewNotes              String?
+  adoptedAt                DateTime?
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
 }
 
 model AuditEvent {

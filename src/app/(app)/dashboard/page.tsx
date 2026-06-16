@@ -46,17 +46,23 @@ export default async function DashboardPage() {
 
       <PageBody>
         {(company.currentFmv409A != null && company.currentFmv409A > 0) && (
-          <InfoStrip
-            items={[
-              {
-                label: "409A fair market value",
-                value: `$${company.currentFmv409A.toFixed(4)} / share`,
-                hint: company.fmv409AEffectiveDate
-                  ? `Effective ${new Date(company.fmv409AEffectiveDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                  : undefined,
-              },
-            ]}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InfoStrip
+              className="flex-1 min-w-0"
+              items={[
+                {
+                  label: "409A fair market value",
+                  value: `$${company.currentFmv409A.toFixed(4)} / share`,
+                  hint: company.fmv409AEffectiveDate
+                    ? `Effective ${new Date(company.fmv409AEffectiveDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                    : undefined,
+                },
+              ]}
+            />
+            <Button asChild variant="outline" size="sm" className="shrink-0">
+              <Link href="/valuations">409A valuations</Link>
+            </Button>
+          </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

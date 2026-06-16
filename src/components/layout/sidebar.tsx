@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   Activity,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const navGroups = [
     items: [
       { name: "Fundraise Modeler", href: "/modeler", icon: TrendingUp },
       { name: "Waterfall", href: "/waterfall", icon: Calculator },
+      { name: "409A Valuations", href: "/valuations", icon: Scale },
     ],
   },
   {
